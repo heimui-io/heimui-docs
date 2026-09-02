@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HeimUI — Server-Driven UI for Kotlin Multiplatform</title>
+<meta name="description" content="Ship native Android and iOS screens from your backend. Documentation for the HeimUI SDK, Studio and backend.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { obsidian:'#0B0F19', surface:'#161D2F', surfaceHover:'#1E293B', edge:'#334155',
+            cyan:'#00E5FF', violet:'#A855F7', tan:'#D97706', ink:'#F8FAFC', muted:'#94A3B8' },
+  fontFamily: { sans:['Inter','system-ui','sans-serif'], mono:['JetBrains Mono','ui-monospace','monospace'] }
+}}}
+</script>
+<style>html{background:#0B0F19}::selection{background:#00E5FF33}</style>
+</head>
+<body class="min-h-screen bg-obsidian font-sans text-ink antialiased">
+
+<header class="border-b border-edge">
+  <div class="mx-auto flex h-16 max-w-6xl items-center gap-3 px-6">
+    <span class="grid h-8 w-8 place-items-center rounded-lg border border-cyan/40 bg-cyan/10">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="2" stroke-linecap="round"><path d="M4 4h16v5H4zM4 15h16v5H4zM8 9v6"/></svg>
+    </span>
+    <span class="text-lg font-bold tracking-tight">Heim<span class="text-cyan">UI</span></span>
+    <a href="https://github.com/heimui-io" target="_blank" rel="noopener"
+       class="ml-auto flex items-center gap-2 rounded-lg border border-edge px-3 py-2 text-sm text-muted transition hover:border-cyan/50 hover:text-ink">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
+      GitHub
+    </a>
+  </div>
+</header>
+
+<main class="mx-auto max-w-6xl px-6 py-20">
+
+  <h1 class="max-w-3xl text-4xl font-bold leading-tight sm:text-5xl">
+    Ship native screens from your backend.
+  </h1>
+  <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted">
+    HeimUI is a Server-Driven UI engine for Kotlin Multiplatform. Your backend returns JSON
+    describing a screen; the SDK renders it as native Compose on Android and iOS. Changing a screen
+    becomes a deploy, not an app release.
+  </p>
+
+  <div class="mt-14 grid gap-5 md:grid-cols-3">
+
+    <a href="/sdk/" class="group rounded-2xl border border-cyan/40 bg-surface p-6 transition hover:border-cyan hover:bg-surfaceHover">
+      <div class="flex items-center gap-2">
+        <span class="font-mono text-[11px] uppercase tracking-wider text-cyan">Available</span>
+      </div>
+      <h2 class="mt-3 text-xl font-semibold">Mobile SDK</h2>
+      <p class="mt-2 text-sm leading-relaxed text-muted">
+        Add HeimUI to an Android or iOS app and drive it. Installation, the component catalogue,
+        actions, theming and the four levels of customisation.
+      </p>
+      <span class="mt-4 inline-block text-sm font-medium text-cyan group-hover:underline">Read the docs &rarr;</span>
+    </a>
+
+    <div class="rounded-2xl border border-edge bg-surface/50 p-6">
+      <span class="font-mono text-[11px] uppercase tracking-wider text-muted">In progress</span>
+      <h2 class="mt-3 text-xl font-semibold text-muted">Studio</h2>
+      <p class="mt-2 text-sm leading-relaxed text-muted">
+        The visual editor for building screens without writing JSON, and publishing them to your
+        own infrastructure.
+      </p>
+    </div>
+
+    <div class="rounded-2xl border border-edge bg-surface/50 p-6">
+      <span class="font-mono text-[11px] uppercase tracking-wider text-muted">In progress</span>
+      <h2 class="mt-3 text-xl font-semibold text-muted">Backend</h2>
+      <p class="mt-2 text-sm leading-relaxed text-muted">
+        Serving payloads from your own services. The screen contract, the gateway pattern, and how
+        it fits an existing microservice estate.
+      </p>
+    </div>
+
+  </div>
+
+  <section class="mt-20 border-t border-edge pt-12">
+    <h2 class="text-2xl font-semibold">Why it is built this way</h2>
+    <p class="mt-3 max-w-2xl leading-relaxed text-muted">
+      Rendering JSON is the easy part. What separates a toy from something you put in front of users
+      is what happens when things go wrong — a payload from a newer server, a network that drops
+      mid-form, a cache written by an attacker on a rooted device.
+    </p>
+    <div class="mt-8 grid gap-x-10 gap-y-6 sm:grid-cols-2">
+      <div>
+        <h3 class="font-semibold">Forward compatible</h3>
+        <p class="mt-1 text-sm leading-relaxed text-muted">A component type the client has never heard of degrades to nothing and reports itself. An old app does not break on a new payload.</p>
+      </div>
+      <div>
+        <h3 class="font-semibold">Fails closed</h3>
+        <p class="mt-1 text-sm leading-relaxed text-muted">Submissions reach allow-listed hosts only, URLs open allow-listed schemes only, and signed payloads are re-verified when read back from cache.</p>
+      </div>
+      <div>
+        <h3 class="font-semibold">Degrades, never blanks</h3>
+        <p class="mt-1 text-sm leading-relaxed text-muted">Stale-while-revalidate, ETag revalidation, a circuit breaker, timeouts, and an emergency bundle compiled into the app.</p>
+      </div>
+      <div>
+        <h3 class="font-semibold">Yours to extend</h3>
+        <p class="mt-1 text-sm leading-relaxed text-muted">Nine providers, native components addressed by name from the payload, and a data layer you can replace outright.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="border-t border-edge">
+  <div class="mx-auto max-w-6xl px-6 py-8 text-sm text-muted">
+    <p>HeimUI — Server-Driven UI for Kotlin Multiplatform &amp; Compose.</p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # The content is a JS module, so a syntax error takes the whole page blank rather than
+      # degrading. That has happened: an unescaped `${` inside a Kotlin sample was read as a
+      # template expression and the site rendered a header over nothing.
+      - name: Content parses
+        run: |
+          for f in $(find . -name 'docs.js' -not -path './.git/*'); do
+            node -e "new Function(require('fs').readFileSync('$f','utf8'))" && echo "$f OK"
+          done
+
+      # A nav entry or cross-reference pointing at a section that does not exist is a dead link on
+      # the published site, and nothing else would catch it.
+      - name: No dead internal anchors
+        run: |
+          node - <<'JS'
+          const fs = require('fs');
+          let failed = false;
+          for (const f of fs.readdirSync('.', { recursive: true }).filter(p => p.endsWith('docs.js'))) {
+            const src = fs.readFileSync(f, 'utf8');
+            const ids = new Set([...src.matchAll(/^\s*id:\s*'([\w-]+)'/gm)].map(m => m[1]));
+            const dead = [...new Set([...src.matchAll(/href="#([\w-]+)"/g)].map(m => m[1]).filter(r => !ids.has(r)))];
+            if (dead.length) { console.error(`${f}: dead anchors → ${dead.join(', ')}`); failed = true; }
+            else console.log(`${f}: ${ids.size} sections, no dead anchors`);
+          }
+          if (failed) process.exit(1);
+          JS
+
+      # The custom domain only works while this file says what it says.
+      - name: CNAME intact
+        run: |
+          test "$(cat CNAME)" = "heimui.io" && echo "CNAME OK"
