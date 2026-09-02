@@ -45,7 +45,6 @@ const SECTIONS = [
       on the root coordinate and Gradle resolves the right variant.</p>`),
       code(G, `repositories {
     mavenCentral()
-    mavenLocal()   // while the SDK is pre-release
 }
 
 dependencies {
