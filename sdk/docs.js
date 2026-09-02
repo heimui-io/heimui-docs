@@ -49,7 +49,7 @@ const SECTIONS = [
 }
 
 dependencies {
-    implementation("io.heimui:heimui-core:0.0.1-alpha")
+    implementation("io.heimui:heimui-core:0.0.1-alpha-1")
 }`),
 
       html(`<h3>Plain Android apps too</h3>
@@ -58,7 +58,7 @@ dependencies {
       ordinary Android module works with no KMP plugin anywhere in the build.</p>`),
       code(G, `// A plain com.android.application module. No KMP plugin.
 dependencies {
-    implementation("io.heimui:heimui-core:0.0.1-alpha")
+    implementation("io.heimui:heimui-core:0.0.1-alpha-1")
     implementation(platform("androidx.compose:compose-bom:2025.09.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")

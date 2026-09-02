@@ -1,33 +1,58 @@
 # HeimUI documentation
 
-The site published at **[heimui.io](https://heimui.io)**.
+Source of **[heimui.io](https://heimui.io)**.
 
 ```
-index.html    landing — what HeimUI is, and which product you want
-sdk/          the mobile SDK: installation, components, actions, extension points
-CNAME         the custom domain
+index.html    landing page
+sdk/          mobile SDK documentation
+  index.html    layout, styles, search, code copying
+  docs.js       the content
+favicon.svg
+CNAME         heimui.io
 ```
 
-Static HTML, no build step. Open `index.html` or serve the folder:
+## Running it
+
+Static HTML, no build step:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-## Why the docs live here and not with the code
+## Editing content
 
-The SDK, the Studio and the backend are separate products with separate audiences — mobile
-engineers, designers, backend teams — but they are one thing to whoever is evaluating HeimUI. One
-site with one search beats three that each answer a third of the question.
+Content lives in `docs.js`, layout in `index.html`. Writing docs never means touching the layout.
 
-Keeping it out of any product repo is what makes that possible: `heimui-demo` is a showcase app,
-and its repo should not be where Studio's documentation lands.
+Sections are entries in `SECTIONS`, grouped for the sidebar:
+
+```js
+{
+  group: 'Core concepts',
+  items: [{
+    id: 'caching',                 // also the anchor: /sdk/#caching
+    title: 'Caching & offline',
+    blocks: [
+      html(`<p>…</p>`),
+      code(K, `HeimConfig(…)`),    // K = Kotlin, J = JSON, G = Gradle
+      note('warning', `…`),        // note · tip · warning · security
+      table(['Option', 'What it decides'], [['<code>ttlMillis</code>', '…']]),
+    ]
+  }]
+}
+```
+
+Nesting, code highlighting, copy buttons, search and the scroll-spy sidebar all follow from that —
+there is nothing else to wire.
 
 ## Adding a product
 
-Add a folder, add a card to the landing page. `sdk/` is the template — a static `index.html` shell
-with the content in a `docs.js` beside it, so writing docs never means touching the layout.
+Copy `sdk/` to a new folder and add a card to the landing page.
 
-The tone is not the same across products, and that is deliberate: the SDK section is written for
-engineers and shows code; Studio is for designers and should show flows and screenshots, with no
-Kotlin in sight.
+Write for that product's reader: the SDK section is for engineers and shows code; Studio is for
+designers and should show flows and screenshots, with no Kotlin in it.
+
+## CI
+
+Every push checks that `docs.js` parses, that no internal anchor points at a section that does not
+exist, and that `CNAME` is intact. A syntax error in `docs.js` renders the page blank rather than
+degrading, so it is worth catching before it ships.
