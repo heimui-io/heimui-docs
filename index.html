@@ -47,6 +47,22 @@ tailwind.config = { theme: { extend: {
     becomes a deploy, not an app release.
   </p>
 
+  <div class="mt-7 flex flex-wrap gap-2.5 text-sm">
+    <span class="rounded-full border border-edge bg-surface px-3.5 py-1.5 text-muted">
+      <strong class="text-ink">Kotlin Multiplatform</strong> · Android &amp; iOS from one codebase
+    </span>
+    <span class="rounded-full border border-edge bg-surface px-3.5 py-1.5 text-muted">
+      <strong class="text-ink">Native Android</strong> · no KMP plugin required
+    </span>
+  </div>
+
+  <p class="mt-5 max-w-2xl text-sm leading-relaxed text-muted">
+    Compose Multiplatform&rsquo;s Android target <em>is</em> Jetpack Compose — the same
+    <code class="rounded bg-surfaceHover px-1 font-mono text-[13px] text-cyan">androidx.compose</code>
+    classes, no duplication — so an ordinary Android module consumes it with nothing special in the
+    build. The only requirement is that your app uses Compose.
+  </p>
+
   <div class="mt-14 grid gap-5 md:grid-cols-3">
 
     <a href="/sdk/" class="group rounded-2xl border border-cyan/40 bg-surface p-6 transition hover:border-cyan hover:bg-surfaceHover">
@@ -55,8 +71,12 @@ tailwind.config = { theme: { extend: {
       </div>
       <h2 class="mt-3 text-xl font-semibold">Mobile SDK</h2>
       <p class="mt-2 text-sm leading-relaxed text-muted">
-        Add HeimUI to an Android or iOS app and drive it. Installation, the component catalogue,
-        actions, theming and the four levels of customisation.
+        Installation, the component catalogue, actions, theming and the four levels of
+        customisation.
+      </p>
+      <p class="mt-3 text-sm leading-relaxed text-muted">
+        Works in a <strong class="text-ink">Kotlin Multiplatform</strong> project and in a
+        <strong class="text-ink">plain Android</strong> one — no KMP plugin required.
       </p>
       <span class="mt-4 inline-block text-sm font-medium text-cyan group-hover:underline">Read the docs &rarr;</span>
     </a>
