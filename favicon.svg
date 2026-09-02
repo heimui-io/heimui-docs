@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Reads at 16px, which the traced logo does not: at favicon size a detailed mark becomes
+       mud, so this is the header glyph with heavier strokes and the brand's own background. -->
+  <rect width="32" height="32" rx="7" fill="#0B0F19"/>
+  <g fill="none" stroke="#00E5FF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="7" y="7" width="18" height="6.5" rx="1.6"/>
+    <rect x="7" y="18.5" width="18" height="6.5" rx="1.6"/>
+    <path d="M12 13.5v5"/>
+  </g>
+</svg>
