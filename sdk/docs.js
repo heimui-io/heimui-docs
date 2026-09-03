@@ -516,7 +516,50 @@ fun HomeRoute(navController: NavController) {
     formDraftStorage = DriverBackedFormDraftStorage(driver = YourStorageDriver()),
 ) { … }`),
       html(`<p>A user halfway through a long form who takes a phone call can have the app killed underneath
-      them. With this wired, their answers are still there.</p>`)
+      them. With this wired, their answers are still there.</p>`),
+
+      html(`<h3>A draft belongs to one version of the screen</h3>
+      <p>Every persisted draft is stamped with the <code>version</code> the payload declared, under the
+      reserved key <code>__heim_screen_version</code>, exported as the constant
+      <code>DRAFT_VERSION_KEY</code> so a storage driver reading its own contents can name it rather than
+      hardcode the string. The stamp is added on the way to storage and stripped on the way back, so it never
+      appears in form state or in a submitted payload.</p>`),
+      code(J, `{
+  "id": "kyc",
+  "version": "2.0.0",
+  "title": "Identity verification",
+  "root": { … }
+}`),
+      html(`<p>The version arrives with the payload, so it is not known until the screen has loaded.
+      <code>HeimScreen</code> hands it to the state manager once the content is there. If the stored draft's
+      stamp matches, the draft is restored. If it does not, the draft is discarded and cleared from
+      storage.</p>`),
+      html(`<p>Discarding sounds harsher than restoring, and it is the safer of the two. A
+      <code>state_key</code> can change meaning between two versions of a screen. If <code>doc_type</code>
+      held a document type in the version the draft was written against and holds something else in the
+      version now on screen, restoring it puts an answer in the form that the user never gave — and they see
+      a field that is already filled, so they have no reason to look at it. On a KYC or a payment form that is
+      a worse outcome than losing the draft.</p>`),
+      note('note', `<strong>Bump <code>version</code> whenever you change what a <code>state_key</code>
+      means</strong> — renaming it, reusing it for a different question, changing the set of values it can
+      hold. Moving a field, restyling it or editing its label does not need a bump; those leave the answers
+      still true. The cost of bumping when you did not have to is one lost draft. The cost of not bumping when
+      you should have is a wrong answer submitted under the user's name.`),
+      note('note', `This <code>version</code> is the string inside the payload. It is not the revision number
+      your backend or CMS assigns when someone saves a screen — HeimUI Studio, for instance, numbers every
+      revision it stores so it can roll back, and never touches the JSON. Two different numbering schemes, and
+      only the one inside the payload reaches the device. A screen can be on its fortieth stored revision and
+      still be <code>"version": "1.0.0"</code> as far as drafts are concerned, which is correct if none of
+      those forty edits changed what a key means.`),
+
+      html(`<h3>Where the guard is late</h3>
+      <p>Stale-while-revalidate paints the cached payload before the fresh one arrives. If the cached copy is
+      an older version, its draft matches it and is restored — briefly. When the fresh version lands, those
+      restored fields are emptied and the stored draft is cleared, so the values from the old version do not
+      survive into the new screen and are not re-stamped with the new version on the next save.</p>
+      <p>So the user can see stale answers appear and then vanish. This narrows the window rather than closing
+      it: the wrong values are on screen for as long as revalidation takes. Withdrawing them is still the right
+      trade — the alternative is leaving them in place under a version they were never written for.</p>`)
     ]
   }]
 },
