@@ -273,7 +273,7 @@ fun HomeRoute(navController: NavController) {
         ['<code>image</code>', 'Loaded through Coil 3. <code>url</code>, <code>blur_hash</code>, <code>aspect_ratio</code>, <code>corner_radius</code>, <code>content_scale</code>.'],
         ['<code>icon</code>', 'A <em>name</em>, drawn by your <code>HeimIconProvider</code>.'],
         ['<code>badge</code>', 'Decoration, not tappable — for a tappable pill use <code>chip</code>. <code>background_color</code>, <code>text_color</code>, <code>icon_url</code>.'],
-        ['<code>button</code>', '<code>variant</code> (<code>FILLED</code>, <code>OUTLINED</code>, <code>TEXT</code>, <code>TONAL</code>), optional <code>icon</code>, <code>is_loading</code>, <code>is_enabled</code>, <code>actions</code>.'],
+        ['<code>button</code>', '<code>variant</code> (<code>FILLED</code>, <code>OUTLINED</code>, <code>TEXT</code>, <code>TONAL</code>), optional <code>icon</code>, <code>is_loading</code>, <code>is_enabled</code>, <code>actions</code>. Styleable — see <a href="#theming">Styling a control</a>.'],
         ['<code>chip</code>', 'Compact and tappable. Action, single choice, or toggle — see <a href="#chips">Chips</a>.'],
         ['<code>custom</code>', 'Your own composable, addressed by name. See <a href="#custom">Custom components</a>.']
       ]),
@@ -288,7 +288,10 @@ fun HomeRoute(navController: NavController) {
         ['<code>date_picker</code>', 'State holds ISO <code>YYYY-MM-DD</code>. <code>min_date</code>, <code>max_date</code>, and <code>confirm_text</code> / <code>dismiss_text</code> — see <a href="#forms">Forms</a>.']
       ]),
       note('note', `<code>dropdown</code> is spelled <code>select</code>. Every form component writes into the
-      same state namespace, so <code>visible_if</code> can read any of them.`)
+      same state namespace, so <code>visible_if</code> can read any of them.`),
+      note('tip', `Every control on this page also takes <code>background_color</code>,
+      <code>text_color</code>, <code>border_color</code> and friends, for the screen a designer specced
+      down to the pixel. See <a href="#theming">Styling a control</a>.`)
     ]
   },
   {
@@ -683,7 +686,37 @@ HeimTheme(
     )
 }
 
-HeimTheme(brandTokens = brandTokens) { … }`)
+HeimTheme(brandTokens = brandTokens) { … }`),
+
+      html(`<h3>Styling a control</h3>
+      <p>A theme covers the screens you own. It does not cover the one a designer handed over with a
+      specific button on it — and until a payload could say so, the answer was a custom component for
+      what is still a button. The eight interactive components take style properties:</p>`),
+      table(['Component', 'Properties'], [
+        ['<code>button</code>', '<code>background_color</code>, <code>text_color</code>, <code>border_color</code>, <code>border_width</code>, <code>corner_radius</code>'],
+        ['<code>text_field</code> · <code>select</code> · <code>date_picker</code> · <code>chip</code>', 'those five, plus <code>accent_color</code>'],
+        ['<code>switch</code>', '<code>text_color</code>, <code>background_color</code>, <code>accent_color</code>'],
+        ['<code>checkbox</code>', '<code>text_color</code>, <code>border_color</code>, <code>corner_radius</code>, <code>accent_color</code>'],
+        ['<code>radio_group</code>', '<code>text_color</code>, <code>border_color</code>, <code>accent_color</code>']
+      ]),
+      code(J, `{
+  "type": "button", "id": "pay", "title": "Pay now",
+  "background_color": "brand-primary",
+  "text_color": "text-on-brand",
+  "corner_radius": 8
+}`),
+      html(`<p><code>accent_color</code> is the one colour a control is <em>about</em>: the track of a
+      switch that is on, the tick in a checkbox, the outline of a focused field, the fill of a selected
+      filter chip, the highlighted day in a date picker. Naming it once is why a control does not need a
+      property per state.</p>`),
+      note('tip', `These take the same names as anything else — a <code>HeimBrandTokens</code> key or a
+      Material role — so <code>brand-primary</code> is still one colour in light and another in dark. A
+      hex is accepted and is the same colour in both, which is occasionally what a designer means and
+      usually not.`),
+      note('note', `Colours you leave out are the theme's, not a default: a button that names only
+      <code>background_color</code> gets a readable label derived from it, and one that names nothing
+      renders exactly as it did before any of this existed. Disabled states are derived too, so a styled
+      control still greys out like a control.`)
     ]
   },
   {
