@@ -10,7 +10,7 @@
  */
 
 /* ---------- languages ---------- */
-const K = 'kotlin', J = 'json', G = 'gradle', P = 'python', JS = 'javascript', SH = 'bash';
+const K = 'kotlin', J = 'json', G = 'gradle', P = 'python', JS = 'javascript', SH = 'bash', GO = 'go';
 
 /* ---------- authoring helpers ---------- */
 

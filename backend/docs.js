@@ -246,11 +246,19 @@ const SECTIONS = [
       table(['Language', 'File', 'Runner', 'Dependencies'], [
         ['Python 3.9+', '<a href="/backend/examples/python/heimui_hydration.py">heimui_hydration.py</a>', '<a href="/backend/examples/python/run_corpus.py">run_corpus.py</a>', 'None — standard library'],
         ['Node (ESM)', '<a href="/backend/examples/node/heimui-hydration.mjs">heimui-hydration.mjs</a>', '<a href="/backend/examples/node/run-corpus.mjs">run-corpus.mjs</a>', 'None'],
-        ['Kotlin (JVM)', '<a href="/backend/examples/kotlin/HeimHydrationEngine.kt">HeimHydrationEngine.kt</a>', '<a href="/backend/examples/kotlin/RunCorpus.kt">RunCorpus.kt</a>', 'kotlinx-serialization-json']
+        ['Kotlin (JVM)', '<a href="/backend/examples/kotlin/HeimHydrationEngine.kt">HeimHydrationEngine.kt</a>', '<a href="/backend/examples/kotlin/RunCorpus.kt">RunCorpus.kt</a>', 'kotlinx-serialization-json'],
+        ['Go 1.21+', '<a href="/backend/examples/go/hydration.go">hydration.go</a>', '<a href="/backend/examples/go/runcorpus/main.go">runcorpus/main.go</a>', 'None — standard library']
       ]),
-      html(`<p>Each is a single file of roughly 350 lines, structured in the same order as the rules above.
-      Both were written against the corpus and passed 22 of 22 on the first run, which is the honest measure
-      of how big this job is.</p>`),
+      html(`<p>Each is a single file, structured in the same order as the rules above, and each passed 22
+      of 22 on its first run against the corpus. That is the honest measure of how large this job is:</p>`),
+      table(['Language', 'Lines of code', 'Total, with comments'], [
+        ['Node', '256', '400'],
+        ['Kotlin', '289', '442'],
+        ['Python', '306', '475'],
+        ['Go', '473', '630']
+      ]),
+      html(`<p>Go is the outlier because a type switch, an explicit <code>ok</code> on every map read and no
+      comprehensions cost lines, not because it is doing more.</p>`),
       tabs(
         code(P, `from heimui_hydration import hydrate_with_report, UnresolvedPolicy
 
@@ -273,7 +281,14 @@ return document;`),
 
 unresolved.forEach { log.warn("unresolved {} on {}.{}", it.expression, it.nodeId, it.property) }
 
-return document`)
+return document`),
+        code(GO, `result := hydration.HydrateWithReport(screen, data, hydration.Keep)
+
+for _, u := range result.Unresolved {
+    log.Printf("unresolved %s on %s.%s", u.Expression, u.NodeID, u.Property)
+}
+
+return result.Document`)
       ),
       note('tip', `Both files end with a section marked <em>legacy</em>, which reads screens authored before
       the binding contract existed. If every screen you serve was authored in the Studio against the contract,
@@ -310,7 +325,8 @@ return document`)
   | tar -xz --strip-components=2 heimui-docs-main/backend
 
 cd backend/examples/python && python3 run_corpus.py
-cd backend/examples/node   && node run-corpus.mjs`),
+cd backend/examples/node   && node run-corpus.mjs
+cd backend/examples/go     && go run ./runcorpus`),
 
       html(`<p>The Kotlin pair is two files for a JVM project rather than a script. This is the whole
       build they need:</p>`),
