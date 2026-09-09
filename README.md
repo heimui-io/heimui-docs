@@ -2,90 +2,56 @@
 
 Source of **[heimui.io](https://heimui.io)**.
 
-```
-index.html              landing page
-assets/
-  docs-runtime.js       rendering, navigation, search — shared by every section
-sdk/                    mobile SDK documentation
-  index.html              page shell
-  docs.js                 the content
-backend/                hydrating a screen, for the team that owns the backend
-  index.html
-  docs.js
-  examples/               reference implementations, one folder per language
-  corpus/                 the 22 conformance cases — a generated copy, see below
-favicon.svg
-CNAME                   heimui.io
+## What you probably came for
+
+The [backend guide](https://heimui.io/backend/) sends people here for two things.
+
+**Four reference implementations of hydration**, in `backend/examples/`. Each is one file that merges
+a screen template with a payload, and each passes all 22 conformance cases.
+
+| Language | File | Dependencies |
+| --- | --- | --- |
+| Python 3.9+ | `examples/python/heimui_hydration.py` | none — standard library |
+| Node (ESM) | `examples/node/heimui-hydration.mjs` | none |
+| Kotlin (JVM) | `examples/kotlin/HeimHydrationEngine.kt` | kotlinx-serialization-json |
+| Go 1.21+ | `examples/go/hydration.go` | none — standard library |
+
+**The conformance corpus**, in `backend/corpus/`: 22 cases, each one a screen, a payload, the
+document a device should receive, and the expressions that should have been reported as unresolved.
+It is what decides whether an implementation is correct — including one you write in a language not
+listed above.
+
+```bash
+cd backend/examples/python && python3 run_corpus.py
+cd backend/examples/node   && node run-corpus.mjs
+cd backend/examples/go     && go run ./runcorpus
 ```
 
-## Running it
+Take a file, port it, make the corpus green. That is the whole job, and it is around 300 lines.
 
-Static HTML, no build step:
+## Something wrong on the site?
+
+Open an issue naming the page and what is wrong. Pushes here are restricted to the maintainer, so an
+issue travels faster than a pull request.
+
+## Working on the site
+
+Static HTML, no build step. Serve from the repository root rather than opening a file — pages link
+with root-absolute paths, and `file://` resolves those against your disk.
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Serve from the repository root rather than opening a file: pages link with root-absolute paths
-(`/sdk/`, `/favicon.svg`), and `file://` resolves those against your disk.
+Content is `SECTIONS` in each section's `docs.js`; rendering is `assets/docs-runtime.js`, shared by
+every section. Both files carry their own instructions. Four things fail silently if you get them
+wrong:
 
-## Editing content
+- The runtime loads **before** a section's `docs.js`, and that file ends with `renderDocs()`.
+- A language only highlights if that section's `index.html` loads its highlight.js pack.
+- `backend/corpus/` is generated. It is authored in `heimui-core/schema/hydration` and overwritten
+  by `sync-schema.sh`, so an edit made here is lost — and until it is, this repository and the SDK
+  disagree about what a screen renders while both keep passing their own checks.
+- A syntax error in any script renders a blank page rather than degrading.
 
-Content lives in `docs.js`, rendering in `assets/docs-runtime.js`. Writing docs never means touching
-the runtime.
-
-Sections are entries in `SECTIONS`, grouped for the sidebar:
-
-```js
-{
-  group: 'Core concepts',
-  items: [{
-    id: 'caching',                 // also the anchor: /sdk/#caching
-    title: 'Caching & offline',
-    blocks: [
-      html(`<p>…</p>`),
-      code(K, `HeimConfig(…)`),    // K J G P JS SH GO — see the runtime's language list
-      note('warning', `…`),        // note · tip · warning · security
-      table(['Option', 'What it decides'], [['<code>ttlMillis</code>', '…']]),
-    ]
-  }]
-}
-```
-
-Nesting, code highlighting, copy buttons, search and the scroll-spy sidebar all follow from that —
-there is nothing else to wire.
-
-Two rules the runtime imposes. A content file ends with `renderDocs()`, and the page loads
-`assets/docs-runtime.js` **before** it, so the helpers exist when the content is read and the
-document exists when it is rendered. And a language only highlights if `index.html` loads its
-highlight.js pack.
-
-## Adding a product
-
-Copy an existing `index.html` to a new folder, change the title, description and footer, and write a
-`docs.js` beside it. Add a card to the landing page and an entry to the section switcher in every
-`index.html`, so the new section is reachable from the others.
-
-Write for that product's reader: the SDK section is for engineers and shows Kotlin; Studio is for
-designers and should show flows and screenshots, with no Kotlin in it.
-
-## The corpus is a copy
-
-`backend/corpus/` is generated. It is the hydration corpus from `heimui-core/schema/hydration`,
-which is where it is authored, and it is overwritten by `heimui-core/scripts/sync-schema.sh`.
-
-**Editing a case here loses the edit silently**, and worse, it makes this repository disagree with
-the SDK about what a screen renders while both keep passing their own checks. Change it upstream and
-run the sync.
-
-## CI
-
-Every push checks that every `.js` file parses, that no internal anchor points at a section that
-does not exist, that `CNAME` is intact, and that the reference implementations still pass all 22
-corpus cases.
-
-A syntax error in `docs.js` renders its page blank rather than degrading, and one in
-`assets/docs-runtime.js` blanks every page, so both are worth catching before they ship.
-
-The corpus run is there because the page makes a specific promise — *these implementations pass the
-corpus* — and a promise nothing verifies is a promise that quietly stops being true.
+CI catches the last one on every push, along with dead anchors, the CNAME, and the corpus itself.
