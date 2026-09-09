@@ -20,12 +20,13 @@ jobs:
         with:
           node-version: '20'
 
-      # The content is a JS module, so a syntax error takes the whole page blank rather than
-      # degrading. That has happened: an unescaped `${` inside a Kotlin sample was read as a
-      # template expression and the site rendered a header over nothing.
-      - name: Content parses
+      # A syntax error takes the whole page blank rather than degrading. That has happened: an
+      # unescaped `${` inside a Kotlin sample was read as a template expression and the site
+      # rendered a header over nothing. `assets/docs-runtime.js` is included because it is shared,
+      # so a mistake there blanks every section at once rather than one of them.
+      - name: Every script parses
         run: |
-          for f in $(find . -name 'docs.js' -not -path './.git/*'); do
+          for f in $(find . -name '*.js' -not -path './.git/*'); do
             node -e "new Function(require('fs').readFileSync('$f','utf8'))" && echo "$f OK"
           done
 
@@ -50,3 +51,30 @@ jobs:
       - name: CNAME intact
         run: |
           test "$(cat CNAME)" = "heimui.io" && echo "CNAME OK"
+
+  corpus:
+    name: Reference implementations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      # The backend guide makes one specific promise -- these implementations agree with the corpus
+      # -- and a promise nothing verifies is one that quietly stops being true. Each of these runs
+      # the 22 published cases and fails on the first disagreement.
+      #
+      # Kotlin is absent on purpose: it is a JVM project rather than a script, and standing up
+      # Gradle here costs more than it catches for a repository that is otherwise static files.
+      - name: Python
+        run: cd backend/examples/python && python3 run_corpus.py
+
+      - name: Node
+        run: cd backend/examples/node && node run-corpus.mjs
+
+      - name: Go
+        run: cd backend/examples/go && go run ./runcorpus
