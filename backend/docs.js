@@ -239,10 +239,10 @@ const SECTIONS = [
   group: 'Implementations',
   items: [
   {
-    id: 'implementations', title: 'Python, Node and Kotlin',
+    id: 'implementations', title: 'Python, Node, Kotlin and Go',
     blocks: [
-      html(`<p>Three implementations exist, written separately, agreeing on all 22 corpus cases. Take one, or
-      write your own.</p>`),
+      html(`<p>Four implementations exist, written separately, agreeing on all 22 corpus cases. Take one,
+      or write your own.</p>`),
       table(['Language', 'File', 'Runner', 'Dependencies'], [
         ['Python 3.9+', '<a href="/backend/examples/python/heimui_hydration.py">heimui_hydration.py</a>', '<a href="/backend/examples/python/run_corpus.py">run_corpus.py</a>', 'None — standard library'],
         ['Node (ESM)', '<a href="/backend/examples/node/heimui-hydration.mjs">heimui-hydration.mjs</a>', '<a href="/backend/examples/node/run-corpus.mjs">run-corpus.mjs</a>', 'None'],
@@ -258,9 +258,23 @@ const SECTIONS = [
         ['Go', '473', '630']
       ]),
       html(`<p>Go is the outlier because a type switch, an explicit <code>ok</code> on every map read and no
-      comprehensions cost lines, not because it is doing more.</p>`),
+      comprehensions cost lines, not because it is doing more.</p>
+
+      <h3>Where the template comes from is yours</h3>
+      <p>The engine takes a screen that is already parsed. It never fetches anything, so <strong>whatever
+      stores your published screens is a detail it knows nothing about</strong>: object storage such as S3 or
+      GCS, a CDN in front of it, a Git repository, an internal API, or a table in your own database. The
+      Studio publishes a screen; how it reaches your service is your architecture, not this contract's.</p>
+      <p>Two things are worth doing wherever you read it from. Cache it — a template changes on a deploy, not
+      on a request, and refetching one per request turns your storage into a hot path. And keep serving the
+      last copy you had when the fetch fails, because a screen that is one release behind is a working app
+      and a screen that is missing is a blank one.</p>`),
       tabs(
         code(P, `from heimui_hydration import hydrate_with_report, UnresolvedPolicy
+
+# Wherever you publish screens: S3, a CDN, a Git repo, your own API, your own database.
+screen = templates.fetch("checkout_v3")
+data = checkout_payload(user)
 
 result = hydrate_with_report(screen, data, UnresolvedPolicy.KEEP)
 
@@ -270,6 +284,10 @@ for u in result.unresolved:
 return result.document`),
         code(JS, `import { hydrateWithReport, UnresolvedPolicy } from './heimui-hydration.mjs';
 
+// Wherever you publish screens: S3, a CDN, a Git repo, your own API, your own database.
+const screen = await templates.fetch('checkout_v3');
+const data = await checkoutPayload(user);
+
 const { document, unresolved } = hydrateWithReport(screen, data, UnresolvedPolicy.KEEP);
 
 for (const u of unresolved) {
@@ -277,12 +295,23 @@ for (const u of unresolved) {
 }
 
 return document;`),
-        code(K, `val (document, unresolved) = HeimHydrationEngine.hydrateWithReport(screen, data, UnresolvedPolicy.KEEP)
+        code(K, `// Wherever you publish screens: S3, a CDN, a Git repo, your own API, your own database.
+val screen = templates.fetch("checkout_v3")
+val data = checkoutPayload(user)
+
+val (document, unresolved) = HeimHydrationEngine.hydrateWithReport(screen, data, UnresolvedPolicy.KEEP)
 
 unresolved.forEach { log.warn("unresolved {} on {}.{}", it.expression, it.nodeId, it.property) }
 
 return document`),
-        code(GO, `result := hydration.HydrateWithReport(screen, data, hydration.Keep)
+        code(GO, `// Wherever you publish screens: S3, a CDN, a Git repo, your own API, your own database.
+screen, err := templates.Fetch(ctx, "checkout_v3")
+if err != nil {
+    return nil, err
+}
+data := checkoutPayload(user)
+
+result := hydration.HydrateWithReport(screen, data, hydration.Keep)
 
 for _, u := range result.Unresolved {
     log.Printf("unresolved %s on %s.%s", u.Expression, u.NodeID, u.Property)
@@ -290,7 +319,7 @@ for _, u := range result.Unresolved {
 
 return result.Document`)
       ),
-      note('tip', `Both files end with a section marked <em>legacy</em>, which reads screens authored before
+      note('tip', `All four end with a section marked <em>legacy</em>, which reads screens authored before
       the binding contract existed. If every screen you serve was authored in the Studio against the contract,
       delete it — nothing above it depends on it.`)
     ]
