@@ -1,0 +1,38 @@
+{
+  "name": "repeat expands the first item as a mould",
+  "why": "The baseline case: one authored card becomes one card per product.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "lazy_row",
+      "id": "row",
+      "repeat": { "source": "products", "as": "product" },
+      "items": [
+        {
+          "type": "card",
+          "id": "card_{{ product.id }}",
+          "child": { "type": "text", "id": "n", "text": "{{ product.name }} — {{ product.price }}" }
+        }
+      ]
+    }
+  },
+  "data": {
+    "products": [
+      { "id": "1", "name": "Zoom", "price": "19.99" },
+      { "id": "2", "name": "Boost", "price": "24.50" }
+    ]
+  },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "lazy_row",
+      "id": "row",
+      "items": [
+        { "type": "card", "id": "card_1", "child": { "type": "text", "id": "n", "text": "Zoom — 19.99" } },
+        { "type": "card", "id": "card_2", "child": { "type": "text", "id": "n", "text": "Boost — 24.50" } }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}

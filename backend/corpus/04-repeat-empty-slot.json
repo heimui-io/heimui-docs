@@ -1,0 +1,28 @@
+{
+  "name": "an empty collection renders its empty slot",
+  "why": "An empty list used to be an empty screen with no explanation on it, which is the most common state a real app has to show and the one nothing could express.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "list",
+      "repeat": {
+        "source": "orders",
+        "as": "order",
+        "empty": { "type": "text", "id": "none", "text": "No orders yet" }
+      },
+      "items": [{ "type": "text", "id": "row", "text": "{{ order.ref }}" }]
+    }
+  },
+  "data": { "orders": [] },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "list",
+      "items": [{ "type": "text", "id": "none", "text": "No orders yet" }]
+    }
+  },
+  "expectedUnresolved": []
+}

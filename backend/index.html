@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HeimUI Core — Server-Driven UI for Kotlin Multiplatform</title>
-<meta name="description" content="Ship native Android and iOS screens from your backend. HeimUI Core is a Server-Driven UI engine for Kotlin Multiplatform and Compose Multiplatform.">
+<title>Hydrating a HeimUI screen — backend guide</title>
+<meta name="description" content="How a backend merges a HeimUI screen template with its data: the binding rules, reference implementations in Python and Node, and the conformance corpus that proves yours is correct.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/gradle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
 <script>
 tailwind.config = {
   theme: { extend: {
@@ -68,8 +70,8 @@ tailwind.config = {
     </a>
 
     <nav class="hidden items-center gap-0.5 rounded-lg border border-edge bg-surface p-0.5 md:flex" aria-label="Documentation sections">
-      <a href="/sdk/#introduction" aria-current="page" class="rounded-md px-3 py-1.5 text-sm font-medium transition bg-cyan/15 text-cyan">Mobile SDK</a>
-      <a href="/backend/#hydration" class="rounded-md px-3 py-1.5 text-sm font-medium transition text-muted hover:text-ink">Backend</a>
+      <a href="/sdk/#introduction" class="rounded-md px-3 py-1.5 text-sm font-medium transition text-muted hover:text-ink">Mobile SDK</a>
+      <a href="/backend/#hydration" aria-current="page" class="rounded-md px-3 py-1.5 text-sm font-medium transition bg-cyan/15 text-cyan">Backend</a>
     </nav>
 
     <div class="relative ml-auto w-full max-w-xs">
@@ -96,8 +98,8 @@ tailwind.config = {
     <div id="content" class="prose-heim mx-auto max-w-3xl"></div>
 
     <footer class="mx-auto mt-24 max-w-3xl border-t border-edge pt-8 text-sm text-muted">
-      <p class="mb-2">HeimUI Core — Server-Driven UI for Kotlin Multiplatform.</p>
-      <p>Every API on this page was read from the source of <code class="rounded bg-surfaceHover px-1 text-cyan">v0.0.1-alpha-2</code>. If something here does not compile, that is a bug in the docs — please open an issue.</p>
+      <p class="mb-2">Hydrating a HeimUI screen — for the team that owns the backend.</p>
+      <p>Every example on this page was produced by running the reference implementation, not written by hand. Both implementations pass the 22-case corpus; if one of them does not, that is a bug — please open an issue.</p>
     </footer>
   </main>
 

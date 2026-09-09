@@ -1,0 +1,43 @@
+{
+  "name": "scope resolves an object for a subtree",
+  "why": "A node bound to an object introduces a name its descendants use. Without frames, `{{ promo.title }}` only worked when the payload happened to use the same key as the alias.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "card",
+      "id": "hero",
+      "scope": { "source": "promotion", "as": "promo" },
+      "child": {
+        "type": "container",
+        "id": "hero_body",
+        "children": [
+          { "type": "badge", "id": "b", "text": "{{ promo.badge }}" },
+          { "type": "text", "id": "t", "text": "{{ promo.copy.headline }}" },
+          { "type": "text", "id": "u", "text": "{{ badge }}" }
+        ]
+      }
+    },
+    "data": { "version": 1, "inputs": {} }
+  },
+  "data": {
+    "promotion": { "badge": "FLASH", "copy": { "headline": "Two for one" } }
+  },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "card",
+      "id": "hero",
+      "child": {
+        "type": "container",
+        "id": "hero_body",
+        "children": [
+          { "type": "badge", "id": "b", "text": "FLASH" },
+          { "type": "text", "id": "t", "text": "Two for one" },
+          { "type": "text", "id": "u", "text": "FLASH" }
+        ]
+      }
+    }
+  },
+  "expectedUnresolved": []
+}

@@ -1,0 +1,52 @@
+{
+  "name": "present and null is an answer; absent is a mistake",
+  "why": "A backend that sends `badge: null` is saying this product has no badge. Reporting that as unresolved buries the real typos among noise, and rendering the literal word `null` on a card was the previous way of getting it wrong.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "lazy_row",
+      "id": "row",
+      "repeat": { "source": "products", "as": "product" },
+      "items": [
+        {
+          "type": "card",
+          "id": "c",
+          "child": {
+            "type": "container",
+            "id": "b",
+            "children": [
+              { "type": "badge", "id": "badge", "text": "{{ product.badge }}" },
+              { "type": "text", "id": "name", "text": "{{ product.name }}" },
+              { "type": "text", "id": "typo", "text": "{{ product.nmae }}" }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "data": { "products": [{ "name": "Zoom", "badge": null }] },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "lazy_row",
+      "id": "row",
+      "items": [
+        {
+          "type": "card",
+          "id": "c",
+          "child": {
+            "type": "container",
+            "id": "b",
+            "children": [
+              { "type": "badge", "id": "badge", "text": "" },
+              { "type": "text", "id": "name", "text": "Zoom" },
+              { "type": "text", "id": "typo", "text": "{{ product.nmae }}" }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expectedUnresolved": [{ "nodeId": "typo", "property": "text", "expression": "product.nmae" }]
+}

@@ -1,0 +1,51 @@
+{
+  "name": "{{state.*}} belongs to the device",
+  "why": "Both languages use these braces. Consuming a state placeholder here submits an empty string instead of what the user typed, and the failure surfaces as a backend validation error nobody can trace.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "login",
+    "root": {
+      "type": "container",
+      "id": "form",
+      "children": [
+        { "type": "text_field", "id": "email", "state_key": "email", "placeholder": "{{ labels.email }}" },
+        {
+          "type": "button",
+          "id": "submit",
+          "title": "Send",
+          "actions": [
+            {
+              "type": "custom",
+              "name": "login_submit",
+              "payload": { "email": "{{state.email}}", "campaign": "{{ labels.campaign }}" }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "data": { "labels": { "email": "Your email", "campaign": "spring" } },
+  "expected": {
+    "id": "login",
+    "root": {
+      "type": "container",
+      "id": "form",
+      "children": [
+        { "type": "text_field", "id": "email", "state_key": "email", "placeholder": "Your email" },
+        {
+          "type": "button",
+          "id": "submit",
+          "title": "Send",
+          "actions": [
+            {
+              "type": "custom",
+              "name": "login_submit",
+              "payload": { "email": "{{state.email}}", "campaign": "spring" }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}

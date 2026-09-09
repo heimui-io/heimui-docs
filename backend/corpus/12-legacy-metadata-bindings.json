@@ -1,0 +1,49 @@
+{
+  "name": "screens authored before the contract still hydrate",
+  "why": "Existing screens carry `metadata.bindings`, a map from component id to collection key, and the item's name was guessed from the key by rules the two engines did not share. Reading the old form and applying the same alias rule in both is what lets those screens keep working while they are migrated.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "root_col",
+      "items": [
+        {
+          "type": "card",
+          "id": "hero",
+          "child": { "type": "text", "id": "ht", "text": "{{ promotion.title }}" }
+        },
+        {
+          "type": "lazy_row",
+          "id": "cats",
+          "items": [{ "type": "chip", "id": "chip", "label": "{{ category.name }}" }]
+        }
+      ]
+    },
+    "metadata": { "bindings": { "hero": "promotion", "cats": "categories" } }
+  },
+  "data": {
+    "promotion": { "title": "Sale" },
+    "categories": [{ "name": "Shoes" }, { "name": "Gear" }]
+  },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "root_col",
+      "items": [
+        { "type": "card", "id": "hero", "child": { "type": "text", "id": "ht", "text": "Sale" } },
+        {
+          "type": "lazy_row",
+          "id": "cats",
+          "items": [
+            { "type": "chip", "id": "chip", "label": "Shoes" },
+            { "type": "chip", "id": "chip", "label": "Gear" }
+          ]
+        }
+      ]
+    },
+    "metadata": { "bindings": { "hero": "promotion", "cats": "categories" } }
+  },
+  "expectedUnresolved": []
+}

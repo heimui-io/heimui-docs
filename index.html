@@ -90,14 +90,21 @@ tailwind.config = { theme: { extend: {
       </p>
     </div>
 
-    <div class="rounded-2xl border border-edge bg-surface/50 p-6">
-      <span class="font-mono text-[11px] uppercase tracking-wider text-muted">In progress</span>
-      <h2 class="mt-3 text-xl font-semibold text-muted">Backend</h2>
+    <a href="/backend/" class="group rounded-2xl border border-cyan/40 bg-surface p-6 transition hover:border-cyan hover:bg-surfaceHover">
+      <div class="flex items-center gap-2">
+        <span class="font-mono text-[11px] uppercase tracking-wider text-cyan">Available</span>
+      </div>
+      <h2 class="mt-3 text-xl font-semibold">Backend</h2>
       <p class="mt-2 text-sm leading-relaxed text-muted">
-        Serving payloads from your own services. The screen contract, the gateway pattern, and how
-        it fits an existing microservice estate.
+        Merging a screen with your data: the binding rules, and how to report an expression that
+        resolved to nothing before a user sees it.
       </p>
-    </div>
+      <p class="mt-3 text-sm leading-relaxed text-muted">
+        Reference implementations in <strong class="text-ink">Python</strong> and
+        <strong class="text-ink">Node</strong>, and the 22-case corpus that proves yours is correct.
+      </p>
+      <span class="mt-4 inline-block text-sm font-medium text-cyan group-hover:underline">Read the docs &rarr;</span>
+    </a>
 
   </div>
 

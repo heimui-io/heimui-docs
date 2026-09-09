@@ -1,0 +1,29 @@
+{
+  "name": "top-level scalars and expressions embedded in text",
+  "why": "Not every value is a field of something. A screen title, a store name and a count are single values, and they usually appear inside a sentence rather than alone.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "container",
+      "id": "c",
+      "children": [
+        { "type": "text", "id": "greet", "text": "Welcome to {{ store_name }}" },
+        { "type": "badge", "id": "count", "text": "{{ cart_count }} items" }
+      ]
+    }
+  },
+  "data": { "store_name": "Heim Store", "cart_count": 3 },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "container",
+      "id": "c",
+      "children": [
+        { "type": "text", "id": "greet", "text": "Welcome to Heim Store" },
+        { "type": "badge", "id": "count", "text": "3 items" }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}

@@ -1,0 +1,29 @@
+{
+  "name": "repeat works on children, not only on items",
+  "why": "The editor expanded `items` and nothing else, so a bound container showed one element on the canvas and N on the device.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "container",
+      "id": "col",
+      "direction": "VERTICAL",
+      "repeat": { "source": "categories", "as": "category" },
+      "children": [{ "type": "chip", "id": "c", "label": "{{ category.name }}" }]
+    }
+  },
+  "data": { "categories": [{ "name": "Shoes" }, { "name": "Gear" }] },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "container",
+      "id": "col",
+      "direction": "VERTICAL",
+      "children": [
+        { "type": "chip", "id": "c", "label": "Shoes" },
+        { "type": "chip", "id": "c", "label": "Gear" }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}

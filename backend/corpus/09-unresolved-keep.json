@@ -1,0 +1,34 @@
+{
+  "name": "an unresolved expression is reported, not swallowed",
+  "why": "The literal braces reaching a user is the failure this whole contract exists to prevent. Keeping them is a choice for an editor; not knowing about them is never a choice.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "container",
+      "id": "c",
+      "children": [
+        { "type": "text", "id": "ok", "text": "{{ promo.title }}" },
+        { "type": "text", "id": "typo", "text": "{{ promo.titel }}" },
+        { "type": "text", "id": "gone", "text": "{{ nothing.at.all }}" }
+      ]
+    }
+  },
+  "data": { "promo": { "title": "Sale" } },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "container",
+      "id": "c",
+      "children": [
+        { "type": "text", "id": "ok", "text": "Sale" },
+        { "type": "text", "id": "typo", "text": "{{ promo.titel }}" },
+        { "type": "text", "id": "gone", "text": "{{ nothing.at.all }}" }
+      ]
+    }
+  },
+  "expectedUnresolved": [
+    { "nodeId": "typo", "property": "text", "expression": "promo.titel" },
+    { "nodeId": "gone", "property": "text", "expression": "nothing.at.all" }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "the innermost alias wins",
+  "why": "Two nested moulds may both call their item `item`. Resolving outermost-first would silently show the wrong one.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "outer",
+      "repeat": { "source": "groups", "as": "item" },
+      "items": [
+        {
+          "type": "lazy_row",
+          "id": "inner",
+          "repeat": { "source": "entries", "as": "item" },
+          "items": [{ "type": "text", "id": "t", "text": "{{ item.label }}" }]
+        }
+      ]
+    }
+  },
+  "data": {
+    "groups": [{ "label": "outer", "entries": [{ "label": "inner" }] }]
+  },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "outer",
+      "items": [
+        {
+          "type": "lazy_row",
+          "id": "inner",
+          "items": [{ "type": "text", "id": "t", "text": "inner" }]
+        }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}

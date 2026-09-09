@@ -1,0 +1,54 @@
+{
+  "name": "namespaces compose for a list inside a list",
+  "why": "A form on the third bag of the second passenger has to be reachable and distinct. Composing the parent's namespace is what keeps `weight` on that bag from being every bag's weight.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "booking",
+    "root": {
+      "type": "lazy_column",
+      "id": "outer",
+      "repeat": { "source": "passengers", "as": "passenger" },
+      "items": [
+        {
+          "type": "lazy_column",
+          "id": "bags",
+          "repeat": { "source": "bags", "as": "bag" },
+          "items": [{ "type": "text_field", "id": "w", "state_key": "weight" }]
+        }
+      ]
+    }
+  },
+  "data": {
+    "passengers": [
+      { "id": "p1", "bags": [{ "id": "b1" }, { "id": "b2" }] },
+      { "id": "p2", "bags": [{ "id": "b9" }] }
+    ]
+  },
+  "expected": {
+    "id": "booking",
+    "root": {
+      "type": "lazy_column",
+      "id": "outer",
+      "items": [
+        {
+          "type": "lazy_column",
+          "id": "bags",
+          "items": [
+            { "type": "text_field", "id": "w", "state_key": "weight", "state_scope": "passengers/p1/bags/b1" },
+            { "type": "text_field", "id": "w", "state_key": "weight", "state_scope": "passengers/p1/bags/b2" }
+          ],
+          "state_scope": "passengers/p1"
+        },
+        {
+          "type": "lazy_column",
+          "id": "bags",
+          "items": [
+            { "type": "text_field", "id": "w", "state_key": "weight", "state_scope": "passengers/p2/bags/b9" }
+          ],
+          "state_scope": "passengers/p2"
+        }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}

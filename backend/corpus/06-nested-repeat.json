@@ -1,0 +1,71 @@
+{
+  "name": "a list inside a list item",
+  "why": "The editor looked a collection up in the payload root only, so master-detail could not be designed against what it would actually render.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "outer",
+      "repeat": { "source": "sections", "as": "section" },
+      "items": [
+        {
+          "type": "container",
+          "id": "sec",
+          "children": [
+            { "type": "text", "id": "h", "text": "{{ section.title }}" },
+            {
+              "type": "lazy_row",
+              "id": "inner",
+              "repeat": { "source": "items", "as": "product" },
+              "items": [{ "type": "text", "id": "p", "text": "{{ product.name }} of {{ section.title }}" }]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "data": {
+    "sections": [
+      { "title": "Running", "items": [{ "name": "Zoom" }, { "name": "Pegasus" }] },
+      { "title": "Gym", "items": [{ "name": "Metcon" }] }
+    ]
+  },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "outer",
+      "items": [
+        {
+          "type": "container",
+          "id": "sec",
+          "children": [
+            { "type": "text", "id": "h", "text": "Running" },
+            {
+              "type": "lazy_row",
+              "id": "inner",
+              "items": [
+                { "type": "text", "id": "p", "text": "Zoom of Running" },
+                { "type": "text", "id": "p", "text": "Pegasus of Running" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "container",
+          "id": "sec",
+          "children": [
+            { "type": "text", "id": "h", "text": "Gym" },
+            {
+              "type": "lazy_row",
+              "id": "inner",
+              "items": [{ "type": "text", "id": "p", "text": "Metcon of Gym" }]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}

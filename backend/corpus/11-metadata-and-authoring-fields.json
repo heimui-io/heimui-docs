@@ -1,0 +1,37 @@
+{
+  "name": "metadata survives, authoring fields do not",
+  "why": "`metadata.heim` is the release identity a host app reports to analytics; dropping it leaves the system unable to say which version of a screen a user saw. `repeat`, `scope` and `data` are the opposite: authoring-time information a device has no use for.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "version": "2.1.0",
+    "title": "Home",
+    "apply_safe_insets": true,
+    "root": {
+      "type": "lazy_row",
+      "id": "row",
+      "repeat": { "source": "products", "as": "product" },
+      "items": [{ "type": "text", "id": "t", "text": "{{ product.name }}" }]
+    },
+    "data": {
+      "version": 3,
+      "inputs": { "products": { "kind": "list", "as": "product", "item": { "name": "string" } } },
+      "sample": { "products": [{ "name": "Sample" }] }
+    },
+    "metadata": { "heim": { "release": 7, "name": "spring-sale", "published_at": "2026-09-01T10:00:00Z" } }
+  },
+  "data": { "products": [{ "name": "Zoom" }] },
+  "expected": {
+    "id": "home",
+    "version": "2.1.0",
+    "title": "Home",
+    "apply_safe_insets": true,
+    "root": {
+      "type": "lazy_row",
+      "id": "row",
+      "items": [{ "type": "text", "id": "t", "text": "Zoom" }]
+    },
+    "metadata": { "heim": { "release": 7, "name": "spring-sale", "published_at": "2026-09-01T10:00:00Z" } }
+  },
+  "expectedUnresolved": []
+}

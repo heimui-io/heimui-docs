@@ -1,0 +1,20 @@
+{
+  "name": "an empty collection with no slot leaves nothing behind",
+  "why": "The mould is a template, not content. Leaving it in place shipped a card full of braces.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "list",
+      "repeat": { "source": "orders", "as": "order" },
+      "items": [{ "type": "text", "id": "row", "text": "{{ order.ref }}" }]
+    }
+  },
+  "data": { "orders": [] },
+  "expected": {
+    "id": "home",
+    "root": { "type": "lazy_column", "id": "list", "items": [] }
+  },
+  "expectedUnresolved": []
+}

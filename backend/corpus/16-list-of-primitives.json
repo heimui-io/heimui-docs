@@ -1,0 +1,27 @@
+{
+  "name": "a collection of plain values",
+  "why": "Not every list holds objects. A row of tags is a list of strings, and the alias has to resolve to the value itself because there is no field to read.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "lazy_row",
+      "id": "tags",
+      "repeat": { "source": "tags", "as": "tag" },
+      "items": [{ "type": "chip", "id": "t", "label": "{{ tag }}" }]
+    }
+  },
+  "data": { "tags": ["Running", "Gym"] },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "lazy_row",
+      "id": "tags",
+      "items": [
+        { "type": "chip", "id": "t", "label": "Running" },
+        { "type": "chip", "id": "t", "label": "Gym" }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}

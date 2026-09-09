@@ -1,0 +1,52 @@
+{
+  "name": "unmigrated screens keep every name the old rule could produce",
+  "why": "`metadata.bindings` never recorded what an item was called; the name was derived from the collection key by a rule that lived in code and differed between implementations. `chips_list` was addressed as `chip`, `sports_products` as `product` or `sports_product`. Accepting all of them is what keeps working screens working while they are migrated.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "container",
+      "id": "col",
+      "children": [
+        {
+          "type": "container",
+          "id": "box_chips",
+          "direction": "HORIZONTAL",
+          "children": [{ "type": "chip", "id": "chip", "label": "{{chip.title}}" }]
+        },
+        {
+          "type": "lazy_row",
+          "id": "row_sports",
+          "items": [{ "type": "text", "id": "p", "text": "{{sports_product.name}} / {{ item.name }}" }]
+        }
+      ]
+    },
+    "metadata": { "bindings": { "box_chips": "chips_list", "row_sports": "sports_products" } }
+  },
+  "data": {
+    "chips_list": [{ "title": "Deals" }],
+    "sports_products": [{ "name": "Zoom" }]
+  },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "container",
+      "id": "col",
+      "children": [
+        {
+          "type": "container",
+          "id": "box_chips",
+          "direction": "HORIZONTAL",
+          "children": [{ "type": "chip", "id": "chip", "label": "Deals" }]
+        },
+        {
+          "type": "lazy_row",
+          "id": "row_sports",
+          "items": [{ "type": "text", "id": "p", "text": "Zoom / Zoom" }]
+        }
+      ]
+    },
+    "metadata": { "bindings": { "box_chips": "chips_list", "row_sports": "sports_products" } }
+  },
+  "expectedUnresolved": []
+}

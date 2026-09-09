@@ -1,0 +1,35 @@
+{
+  "name": "an entry no mould claims is left out, not drawn wrong",
+  "why": "A feed gains a kind the screen was never taught to draw — a video, say. Drawing it with whatever mould happens to be first produces a card with empty fields and no explanation; leaving it out is the only honest reading, and the editor says which kinds went missing.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "feed",
+      "repeat": { "source": "feed", "as": "entry", "match": "kind" },
+      "items": [
+        { "type": "text", "id": "product", "when": "product", "text": "{{ entry.name }}" }
+      ]
+    }
+  },
+  "data": {
+    "feed": [
+      { "kind": "product", "name": "Zoom" },
+      { "kind": "video", "url": "x" },
+      { "kind": "product", "name": "Boost" }
+    ]
+  },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "feed",
+      "items": [
+        { "type": "text", "id": "product", "text": "Zoom" },
+        { "type": "text", "id": "product", "text": "Boost" }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}

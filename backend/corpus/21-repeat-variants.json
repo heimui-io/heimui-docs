@@ -1,0 +1,42 @@
+{
+  "name": "a feed whose entries are not all the same shape",
+  "why": "A real feed is products, banners and separators in one list. With a single mould the author has to either split the list on the backend or draw a banner with a product template, and both are worse than saying which mould draws which kind.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "feed",
+      "repeat": { "source": "feed", "as": "entry", "match": "kind" },
+      "items": [
+        { "type": "card", "id": "product", "when": "product", "child": { "type": "text", "id": "pt", "text": "{{ entry.name }}" } },
+        { "type": "box", "id": "banner", "when": "banner", "children": [{ "type": "text", "id": "bt", "text": "{{ entry.headline }}" }] },
+        { "type": "divider", "id": "rule", "when": "*" },
+        { "type": "button", "id": "see_all", "title": "See all" }
+      ]
+    }
+  },
+  "data": {
+    "feed": [
+      { "kind": "product", "name": "Zoom" },
+      { "kind": "banner", "headline": "Two for one" },
+      { "kind": "separator" },
+      { "kind": "product", "name": "Boost" }
+    ]
+  },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "feed",
+      "items": [
+        { "type": "card", "id": "product", "child": { "type": "text", "id": "pt", "text": "Zoom" } },
+        { "type": "box", "id": "banner", "children": [{ "type": "text", "id": "bt", "text": "Two for one" }] },
+        { "type": "divider", "id": "rule" },
+        { "type": "card", "id": "product", "child": { "type": "text", "id": "pt", "text": "Boost" } },
+        { "type": "button", "id": "see_all", "title": "See all" }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}

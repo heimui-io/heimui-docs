@@ -1,0 +1,31 @@
+{
+  "name": "the mould is the first child; the rest survive",
+  "why": "Replacing the whole bucket with the expansion deleted anything authored after the mould — a footer, a 'see all' link — with no error and no undo. The first child is the template; everything after it is content.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "list",
+      "repeat": { "source": "products", "as": "product" },
+      "items": [
+        { "type": "text", "id": "row", "text": "{{ product.name }}" },
+        { "type": "button", "id": "see_all", "title": "See all" }
+      ]
+    }
+  },
+  "data": { "products": [{ "name": "Zoom" }, { "name": "Boost" }] },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "lazy_column",
+      "id": "list",
+      "items": [
+        { "type": "text", "id": "row", "text": "Zoom" },
+        { "type": "text", "id": "row", "text": "Boost" },
+        { "type": "button", "id": "see_all", "title": "See all" }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}

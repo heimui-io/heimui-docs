@@ -1,0 +1,15 @@
+{
+  "name": "the blank policy empties what it reports",
+  "why": "A device showing `{{ product.name }}` on a card is worse than a device showing an empty line. The editor and the service want opposite defaults, so the policy is explicit.",
+  "options": { "onUnresolved": "blank" },
+  "screen": {
+    "id": "home",
+    "root": { "type": "text", "id": "t", "text": "Hello {{ user.name }}!" }
+  },
+  "data": {},
+  "expected": {
+    "id": "home",
+    "root": { "type": "text", "id": "t", "text": "Hello !" }
+  },
+  "expectedUnresolved": [{ "nodeId": "t", "property": "text", "expression": "user.name" }]
+}

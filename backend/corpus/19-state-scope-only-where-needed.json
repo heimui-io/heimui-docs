@@ -1,0 +1,27 @@
+{
+  "name": "a list with no form fields gets no namespace",
+  "why": "The scope exists to tell three inputs apart, not to decorate every list on every screen. A catalogue of product cards writes no state, so stamping it would be bytes on the wire for nothing.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "home",
+    "root": {
+      "type": "lazy_row",
+      "id": "row",
+      "repeat": { "source": "products", "as": "product" },
+      "items": [{ "type": "text", "id": "n", "text": "{{ product.name }}" }]
+    }
+  },
+  "data": { "products": [{ "id": "1", "name": "Zoom" }, { "id": "2", "name": "Boost" }] },
+  "expected": {
+    "id": "home",
+    "root": {
+      "type": "lazy_row",
+      "id": "row",
+      "items": [
+        { "type": "text", "id": "n", "text": "Zoom" },
+        { "type": "text", "id": "n", "text": "Boost" }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}

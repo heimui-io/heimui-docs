@@ -1,0 +1,57 @@
+{
+  "name": "a repeated form gets a namespace per row",
+  "why": "Three passengers on screen share one `state_key`, so typing in the third row filled the first, one validation rule covered all three, and the submitted payload carried a single name. The scope is the missing half of a field's identity, and it is stamped by whatever expanded the list because only that side knows which row is which.",
+  "options": { "onUnresolved": "keep" },
+  "screen": {
+    "id": "booking",
+    "root": {
+      "type": "lazy_column",
+      "id": "passengers",
+      "repeat": { "source": "passengers", "as": "passenger" },
+      "items": [
+        {
+          "type": "container",
+          "id": "row",
+          "children": [
+            { "type": "text", "id": "seat", "text": "Seat {{ passenger.seat }}" },
+            { "type": "text_field", "id": "name", "state_key": "full_name" }
+          ]
+        }
+      ]
+    }
+  },
+  "data": {
+    "passengers": [
+      { "id": "p1", "seat": "12A" },
+      { "id": "p2", "seat": "12B" }
+    ]
+  },
+  "expected": {
+    "id": "booking",
+    "root": {
+      "type": "lazy_column",
+      "id": "passengers",
+      "items": [
+        {
+          "type": "container",
+          "id": "row",
+          "children": [
+            { "type": "text", "id": "seat", "text": "Seat 12A" },
+            { "type": "text_field", "id": "name", "state_key": "full_name" }
+          ],
+          "state_scope": "passengers/p1"
+        },
+        {
+          "type": "container",
+          "id": "row",
+          "children": [
+            { "type": "text", "id": "seat", "text": "Seat 12B" },
+            { "type": "text_field", "id": "name", "state_key": "full_name" }
+          ],
+          "state_scope": "passengers/p2"
+        }
+      ]
+    }
+  },
+  "expectedUnresolved": []
+}
