@@ -13,11 +13,11 @@ const SECTIONS = [
       producing the document a device actually renders.</p>`),
 
       code(J, `// the screen, as the Studio published it        // your data
-{ "type": "text",                                { "user": { "name": "Julián" } }
-  "text": "Hola {{ user.name }}" }
+{ "type": "text",                                { "user": { "name": "Ada" } }
+  "text": "Hello {{ user.name }}" }
 
 // the document a device receives
-{ "type": "text", "text": "Hola Julián" }`),
+{ "type": "text", "text": "Hello Ada" }`),
 
       html(`<p>One function. Two inputs, two outputs:</p>`),
       code(P, `hydrate(screen, data) -> { document, unresolved }`),
@@ -51,7 +51,7 @@ const SECTIONS = [
       template and hydrates it on the device.</p>`),
 
       code(J, `// your existing endpoint, with one field added
-{ "screen": "checkout_v3", "user": { "name": "Julián" }, "products": [ … ] }`),
+{ "screen": "checkout_v3", "user": { "name": "Ada" }, "products": [ … ] }`),
 
       note('tip', `You write <strong>zero</strong> HeimUI code on the backend. No library, nothing from this
       page. This is the default, and it is the cheapest thing you will ever integrate.`),
@@ -83,12 +83,12 @@ const SECTIONS = [
   "items": [ { "type": "text", "id": "name", "text": "{{ product.name }}" } ] }
 
 // data
-{ "products": [ { "name": "Cámara" }, { "name": "Trípode" } ] }
+{ "products": [ { "name": "Camera" }, { "name": "Tripod" } ] }
 
 // document
 { "type": "lazy_column", "id": "list",
-  "items": [ { "type": "text", "id": "name", "text": "Cámara" },
-             { "type": "text", "id": "name", "text": "Trípode" } ] }`),
+  "items": [ { "type": "text", "id": "name", "text": "Camera" },
+             { "type": "text", "id": "name", "text": "Tripod" } ] }`),
       html(`<p>The first child is the <strong>mould</strong>. It is drawn once per item and then it is gone.
       <code>repeat</code> itself is authoring information and never reaches the device.</p>`),
       note('warning', `Children after the mould are <strong>content, not template</strong> — a footer, a
@@ -103,14 +103,14 @@ const SECTIONS = [
       code(J, `// screen
 { "type": "container", "id": "header",
   "scope": { "source": "user", "as": "user" },
-  "children": [ { "type": "text", "id": "hi", "text": "Hola {{ user.first_name }}" } ] }
+  "children": [ { "type": "text", "id": "hi", "text": "Hello {{ user.first_name }}" } ] }
 
 // data
-{ "user": { "first_name": "Julián" } }
+{ "user": { "first_name": "Ada" } }
 
 // document
 { "type": "container", "id": "header",
-  "children": [ { "type": "text", "id": "hi", "text": "Hola Julián" } ] }`)
+  "children": [ { "type": "text", "id": "hi", "text": "Hello Ada" } ] }`)
     ]
   },
   {
@@ -128,8 +128,8 @@ const SECTIONS = [
       <p>When the collection holds strings or numbers there is no field to read, so the alias <em>is</em> the
       value.</p>`),
       code(J, `// repeat { "source": "tags", "as": "tag" }, mould text = "{{ tag }}"
-// data   { "tags": ["nuevo", "oferta"] }
-// document: two texts — "nuevo" and "oferta"`)
+// data   { "tags": ["new", "sale"] }
+// document: two texts — "new" and "sale"`)
     ]
   },
   {
@@ -138,7 +138,7 @@ const SECTIONS = [
       code(J, `// screen
 { "type": "lazy_column", "id": "list",
   "repeat": { "source": "orders", "as": "order",
-              "empty": { "type": "text", "id": "none", "text": "No tienes pedidos" } },
+              "empty": { "type": "text", "id": "none", "text": "You have no orders yet" } },
   "items": [ { "type": "text", "id": "n", "text": "{{ order.code }}" } ] }
 
 // data
@@ -146,7 +146,7 @@ const SECTIONS = [
 
 // document
 { "type": "lazy_column", "id": "list",
-  "items": [ { "type": "text", "id": "none", "text": "No tienes pedidos" } ] }`),
+  "items": [ { "type": "text", "id": "none", "text": "You have no orders yet" } ] }`),
       html(`<p>No <code>empty</code> and an empty list means the container is simply empty.</p>`),
       note('note', `An <strong>absent</strong> <code>empty</code> and <code>"empty": null</code> are different
       documents. In a dynamic language that means a sentinel — see <a href="#traps">what gets ported
@@ -162,20 +162,20 @@ const SECTIONS = [
       code(J, `// screen
 { "type": "lazy_column", "id": "feed",
   "repeat": { "source": "cards", "as": "card", "match": "kind" },
-  "items": [ { "type": "text",  "id": "p", "when": "product", "text": "Producto {{ card.title }}" },
+  "items": [ { "type": "text",  "id": "p", "when": "product", "text": "Product {{ card.title }}" },
              { "type": "image", "id": "b", "when": "banner",  "url": "{{ card.image }}" },
-             { "type": "text",  "id": "footer", "text": "Fin" } ] }
+             { "type": "text",  "id": "footer", "text": "See all" } ] }
 
 // data
 { "cards": [ { "kind": "banner", "image": "a.png" },
-             { "kind": "product", "title": "Cámara" },
+             { "kind": "product", "title": "Camera" },
              { "kind": "ad" } ] }
 
 // document
 { "type": "lazy_column", "id": "feed",
   "items": [ { "type": "image", "id": "b", "url": "a.png" },
-             { "type": "text",  "id": "p", "text": "Producto Cámara" },
-             { "type": "text",  "id": "footer", "text": "Fin" } ] }`),
+             { "type": "text",  "id": "p", "text": "Product Camera" },
+             { "type": "text",  "id": "footer", "text": "See all" } ] }`),
       html(`<p>Two things to read out of that output. The third card is <code>kind: "ad"</code> and no mould
       claims it, so it is <strong>left out</strong> rather than drawn with the wrong template. And
       <code>when</code> is stripped: how a mould was chosen is not something a device has any use for.</p>`),
@@ -243,10 +243,10 @@ const SECTIONS = [
     blocks: [
       html(`<p>Three implementations exist, written separately, agreeing on all 22 corpus cases. Take one, or
       write your own.</p>`),
-      table(['Language', 'File', 'Dependencies'], [
-        ['Python 3.9+', '<a href="/backend/examples/python/heimui_hydration.py">heimui_hydration.py</a>', 'None — standard library'],
-        ['Node (ESM)', '<a href="/backend/examples/node/heimui-hydration.mjs">heimui-hydration.mjs</a>', 'None'],
-        ['Kotlin', 'Ships with the SDK', '—']
+      table(['Language', 'File', 'Runner', 'Dependencies'], [
+        ['Python 3.9+', '<a href="/backend/examples/python/heimui_hydration.py">heimui_hydration.py</a>', '<a href="/backend/examples/python/run_corpus.py">run_corpus.py</a>', 'None — standard library'],
+        ['Node (ESM)', '<a href="/backend/examples/node/heimui-hydration.mjs">heimui-hydration.mjs</a>', '<a href="/backend/examples/node/run-corpus.mjs">run-corpus.mjs</a>', 'None'],
+        ['Kotlin (JVM)', '<a href="/backend/examples/kotlin/HeimHydrationEngine.kt">HeimHydrationEngine.kt</a>', '<a href="/backend/examples/kotlin/RunCorpus.kt">RunCorpus.kt</a>', 'kotlinx-serialization-json']
       ]),
       html(`<p>Each is a single file of roughly 350 lines, structured in the same order as the rules above.
       Both were written against the corpus and passed 22 of 22 on the first run, which is the honest measure
@@ -268,7 +268,12 @@ for (const u of unresolved) {
   log.warn(\`unresolved \${u.expression} on \${u.nodeId}.\${u.property}\`);
 }
 
-return document;`)
+return document;`),
+        code(K, `val (document, unresolved) = HeimHydrationEngine.hydrateWithReport(screen, data, UnresolvedPolicy.KEEP)
+
+unresolved.forEach { log.warn("unresolved {} on {}.{}", it.expression, it.nodeId, it.property) }
+
+return document`)
       ),
       note('tip', `Both files end with a section marked <em>legacy</em>, which reads screens authored before
       the binding contract existed. If every screen you serve was authored in the Studio against the contract,
@@ -306,6 +311,18 @@ return document;`)
 
 cd backend/examples/python && python3 run_corpus.py
 cd backend/examples/node   && node run-corpus.mjs`),
+
+      html(`<p>The Kotlin pair is two files for a JVM project rather than a script. This is the whole
+      build they need:</p>`),
+      code(G, `plugins {
+    kotlin("jvm") version "2.0.21"
+    application
+}
+repositories { mavenCentral() }
+dependencies { implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3") }
+application { mainClass.set("io.heimui.hydration.RunCorpusKt") }
+
+// ./gradlew run --args="path/to/corpus"`),
       code(SH, `  ok   01-scope-object.json
   ok   02-repeat-items.json
   …
