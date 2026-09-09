@@ -48,7 +48,7 @@ const SECTIONS = [
 }
 
 dependencies {
-    implementation("io.heimui:heimui-core:0.0.1-alpha-1")
+    implementation("io.heimui:heimui-core:0.0.1-alpha-2")
 }`),
 
       html(`<h3>Plain Android apps too</h3>
@@ -57,7 +57,7 @@ dependencies {
       ordinary Android module works with no KMP plugin anywhere in the build.</p>`),
       code(G, `// A plain com.android.application module. No KMP plugin.
 dependencies {
-    implementation("io.heimui:heimui-core:0.0.1-alpha-1")
+    implementation("io.heimui:heimui-core:0.0.1-alpha-2")
     implementation(platform("androidx.compose:compose-bom:2025.09.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
@@ -101,8 +101,10 @@ fun HomeRoute(navController: NavController) {
       routes. Making the parameter required means you cannot forget to wire it and wonder why taps do nothing.`),
 
       html(`<h3>3 · Serve the payload</h3>
-      <p>A screen id resolves to <code>{baseUrl}/screens/{screenId}</code>. Return this and you have a
-      working screen:</p>`),
+      <p>A screen id resolves against <code>baseUrl</code> and nothing else:
+      <code>{baseUrl}/{screenId}</code>. The SDK adds no path segment of its own, so
+      <code>"home"</code> and <code>"catalog/detail"</code> name your routes, not a layout it
+      imposes on you. Return this and you have a working screen:</p>`),
       code(J, `{
   "id": "home",
   "version": "1.0.0",
@@ -132,9 +134,10 @@ fun HomeRoute(navController: NavController) {
     blocks: [
       html(`<p>Everything the engine needs, in one object. Only <code>baseUrl</code> is required.</p>`),
       table(['Option', 'Type', 'What it decides'], [
-        ['<code>baseUrl</code>', '<code>String</code>', 'Where screens live. A screen id resolves to <code>{baseUrl}/screens/{screenId}</code>.'],
+        ['<code>baseUrl</code>', '<code>String</code>', 'Where screens live. A screen id resolves to <code>{baseUrl}/{screenId}</code> — the SDK contributes no path segment of its own. Also the trust boundary: submissions, absolute screen URLs and images are all measured against this origin.'],
         ['<code>authTokenProvider</code>', '<code>HeimAuthTokenProvider?</code>', 'Supplies the <code>Authorization</code> header, per request and per context. See <a href="#auth">Authentication</a>.'],
         ['<code>allowedSubmitHosts</code>', '<code>Set&lt;String&gt;</code>', 'Hosts a <code>submit_form</code> may post to besides your origin. A payload cannot exfiltrate the token to a host you did not list.'],
+        ['<code>allowCleartextHosts</code>', '<code>Set&lt;String&gt;</code>', 'Hosts reachable over cleartext <code>http://</code> — a local backend during development. Loopback and <code>baseUrl</code>\'s own host need no entry; everything a payload can name does. Empty in production. See <a href="#security">Security model</a>.'],
         ['<code>customHttpClient</code>', '<code>HttpClient?</code>', 'Your own Ktor client — interceptors, certificate pinning, a shared connection pool.'],
         ['<code>verifySignatures</code>', '<code>Boolean</code>', 'Refuse payloads whose signature does not verify. Cached copies are re-checked before rendering, not only when stored.'],
         ['<code>publicKey</code>', '<code>String?</code>', 'The key signatures are checked against.'],
@@ -576,7 +579,7 @@ fun HomeRoute(navController: NavController) {
       <code>onAction</code> afterwards, so you can observe or extend any of them. Every action also
       accepts <code>tracking</code> — see <a href="#tracking">Analytics</a>.</p>`),
       table(['Action', 'Fields', 'Who handles it'], [
-        ['<code>navigate</code>', '<code>screen_id</code>, <code>params</code>', '<strong>You.</strong> The SDK never navigates — only your app knows its graph.'],
+        ['<code>navigate</code>', '<code>screen_id</code>, <code>params</code>', '<strong>You.</strong> The SDK never navigates — only your app knows its graph. <code>screen_id</code> resolves against <code>baseUrl</code>, or may be an absolute URL on your own origin, so one payload can link to the next by href.'],
         ['<code>submit_form</code>', '<code>endpoint</code>, <code>method</code>, <code>payload</code>', 'SDK. Validates, interpolates state, posts, reports the result.'],
         ['<code>set_state</code>', '<code>key</code>, <code>value</code>', 'SDK. Writes a value into form state. Purely local.'],
         ['<code>open_url</code>', '<code>url</code>', 'SDK, through <code>HeimUrlLauncher</code> under the scheme policy.'],
@@ -996,6 +999,7 @@ HeimScreen(screenId = "checkout", onAction = {}, repository = repository)`),
       a payload is untrusted input that arrived over a network.</p>`),
       table(['Control', 'What it stops'], [
         ['<code>allowedSubmitHosts</code>', 'A malicious or compromised payload posting the user&rsquo;s token to a host you never listed.'],
+        ['<code>allowCleartextHosts</code>', 'A payload naming an <code>http://</code> URL — a screen, a form endpoint, an image — and having the SDK fetch it, token and all, over a network anyone on the path can read. Empty by default, so cleartext is refused unless you named the host.'],
         ['<code>HeimUrlPolicy</code>', '<code>intent://</code> reaching unexported Android components; <code>file://</code> and <code>content://</code> disclosing local storage; <code>javascript:</code> running in whatever renders it. It is an <strong>allow-list</strong> — a deny-list always misses the next scheme.'],
         ['Payload guard', 'A deeply nested or oversized payload exhausting the parser. On Kotlin/Native a stack overflow is an uncatchable SIGSEGV, so the depth is checked by scanning the bytes <em>before</em> parsing begins.'],
         ['Signature verification', 'A tampered payload — including one read back from a cache an attacker wrote on a rooted device.'],
@@ -1003,6 +1007,24 @@ HeimScreen(screenId = "checkout", onAction = {}, repository = repository)`),
       ]),
       note('security', `Image URLs are restricted to <code>https</code> and <code>data</code>. A payload cannot
       point an <code>image</code> at <code>file://</code> and read local storage into a bitmap.`),
+      html(`<h3>Cleartext during development</h3>
+      <p>A local backend speaks <code>http://</code>, and the SDK refuses cleartext by default — for screens,
+      for form submissions and for images alike. Two things do not need declaring: loopback
+      (<code>localhost</code>, <code>127.0.0.1</code>), and <code>baseUrl</code>&rsquo;s own host when that URL
+      is already <code>http://</code>, since your app wrote that origin in its own source. Everything a
+      <em>payload</em> can name does need declaring:</p>`),
+      code(K, `HeimUI.initialize(
+    HeimConfig(
+        baseUrl = "http://10.0.2.2:8080",   // the Android emulator's alias for your machine
+        // Only needed for a host the payload names that is not the baseUrl's own —
+        // a local image CDN, say. Keep it empty in release.
+        allowCleartextHosts = if (BuildConfig.DEBUG) setOf("assets.local") else emptySet(),
+    )
+)`),
+      note('warning', `The platform has to agree too, and no SDK setting substitutes for it: Android wants
+      <code>android:usesCleartextTraffic="true"</code> or a network security config (put it in
+      <code>src/debug</code> so the release build never carries it), and iOS an ATS exception. Ship neither in
+      a release build.`),
       html(`<h3>R8 and obfuscation</h3>
       <p>The SDK ships consumer keep rules covering its polymorphic serialization, so R8 in your app will not
       break payload parsing. That failure is the classic release-only surprise: the debug build passes and the
