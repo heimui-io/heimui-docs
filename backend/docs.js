@@ -43,8 +43,9 @@ const SECTIONS = [
   {
     id: 'do-you-need-it', title: 'Do you need this?',
     blocks: [
-      html(`<p>There are two ways to integrate, and <strong>most teams should pick the first</strong> — in
-      which case nothing else on this page applies to you.</p>
+      html(`<p>There are two ways to integrate a screen that carries data, and <strong>most teams should
+      pick the first</strong> — in which case nothing else on this page applies to you. A screen that carries
+      no data needs neither, and that case is at the bottom.</p>
 
       <h3>Route A — the SDK hydrates, on the device</h3>
       <p>Your backend returns the JSON response you already have, plus the id of a screen. The SDK fetches the
@@ -64,7 +65,17 @@ const SECTIONS = [
         <li>you decide the payload server-side — A/B tests, entitlements, pricing rules, or</li>
         <li>you already own the template cache and want one round trip.</li>
       </ul>
-      <p>Route B is the one that needs an implementation in your language. That is the rest of this page.</p>`)
+      <p>Route B is the one that needs an implementation in your language. That is the rest of this page.</p>
+
+      <h3>Neither — a screen with no data</h3>
+      <p>Terms and conditions, a help page, an onboarding carousel: no <code>{{ … }}</code> anywhere in them,
+      so there is nothing to fill in and hydration is a no-op. The SDK reads the template and renders what it
+      got, from an open environment on the Studio or from
+      <a href="/storage/#device-reads">object storage</a>. No backend work on either side.</p>`),
+
+      note('note', `Either way, something has to hand you the template. By default that is the Studio. If it
+      should not be in the request path of a live app, it can mirror every publication into a bucket you own
+      instead — <a href="/storage/#why">serving templates from object storage</a>.`)
     ]
   }
   ]

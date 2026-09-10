@@ -63,7 +63,7 @@ tailwind.config = { theme: { extend: {
     build. The only requirement is that your app uses Compose.
   </p>
 
-  <div class="mt-14 grid gap-5 md:grid-cols-3">
+  <div class="mt-14 grid gap-5 md:grid-cols-2">
 
     <a href="/sdk/" class="group rounded-2xl border border-cyan/40 bg-surface p-6 transition hover:border-cyan hover:bg-surfaceHover">
       <div class="flex items-center gap-2">
@@ -102,6 +102,23 @@ tailwind.config = { theme: { extend: {
       <p class="mt-3 text-sm leading-relaxed text-muted">
         Reference implementations in <strong class="text-ink">Python</strong> and
         <strong class="text-ink">Node</strong>, and the 22-case corpus that proves yours is correct.
+      </p>
+      <span class="mt-4 inline-block text-sm font-medium text-cyan group-hover:underline">Read the docs &rarr;</span>
+    </a>
+
+    <a href="/storage/" class="group rounded-2xl border border-cyan/40 bg-surface p-6 transition hover:border-cyan hover:bg-surfaceHover">
+      <div class="flex items-center gap-2">
+        <span class="font-mono text-[11px] uppercase tracking-wider text-cyan">Available</span>
+      </div>
+      <h2 class="mt-3 text-xl font-semibold">Object storage</h2>
+      <p class="mt-2 text-sm leading-relaxed text-muted">
+        Optional. Mirror published screens into a bucket you own, so an editor is never in the
+        request path of a live app.
+      </p>
+      <p class="mt-3 text-sm leading-relaxed text-muted">
+        <strong class="text-ink">S3</strong>, <strong class="text-ink">R2</strong>,
+        <strong class="text-ink">Spaces</strong> or <strong class="text-ink">MinIO</strong> — the
+        object layout, the two policies, and the one permission everybody forgets.
       </p>
       <span class="mt-4 inline-block text-sm font-medium text-cyan group-hover:underline">Read the docs &rarr;</span>
     </a>

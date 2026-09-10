@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HeimUI Core — Server-Driven UI for Kotlin Multiplatform</title>
-<meta name="description" content="Ship native Android and iOS screens from your backend. HeimUI Core is a Server-Driven UI engine for Kotlin Multiplatform and Compose Multiplatform.">
+<title>Serving HeimUI templates from object storage</title>
+<meta name="description" content="Mirror published HeimUI screens into S3, Cloudflare R2, DigitalOcean Spaces or MinIO, so your service reads templates without the Studio in the request path: the object layout, the two IAM policies, and how to read one.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,9 +13,12 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/gradle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
 <script>
 tailwind.config = {
   theme: { extend: {
@@ -68,9 +71,9 @@ tailwind.config = {
     </a>
 
     <nav class="hidden items-center gap-0.5 rounded-lg border border-edge bg-surface p-0.5 md:flex" aria-label="Documentation sections">
-      <a href="/sdk/#introduction" aria-current="page" class="rounded-md px-3 py-1.5 text-sm font-medium transition bg-cyan/15 text-cyan">Mobile SDK</a>
+      <a href="/sdk/#introduction" class="rounded-md px-3 py-1.5 text-sm font-medium transition text-muted hover:text-ink">Mobile SDK</a>
       <a href="/backend/#hydration" class="rounded-md px-3 py-1.5 text-sm font-medium transition text-muted hover:text-ink">Backend</a>
-      <a href="/storage/#why" class="rounded-md px-3 py-1.5 text-sm font-medium transition text-muted hover:text-ink">Storage</a>
+      <a href="/storage/#why" aria-current="page" class="rounded-md px-3 py-1.5 text-sm font-medium transition bg-cyan/15 text-cyan">Storage</a>
     </nav>
 
     <div class="relative ml-auto w-full max-w-xs">
@@ -97,8 +100,9 @@ tailwind.config = {
     <div id="content" class="prose-heim mx-auto max-w-3xl"></div>
 
     <footer class="mx-auto mt-24 max-w-3xl border-t border-edge pt-8 text-sm text-muted">
-      <p class="mb-2">HeimUI Core — Server-Driven UI for Kotlin Multiplatform.</p>
-      <p>Every API on this page was read from the source of <code class="rounded bg-surfaceHover px-1 text-cyan">v0.0.1-alpha-2</code>. If something here does not compile, that is a bug in the docs — please open an issue.</p>
+      <p class="mb-2">Serving templates from your own object storage — for whoever operates the Studio, and whoever reads what it publishes.</p>
+      <p>Optional. The Studio serves published screens itself, and keeps doing so while this is switched on. Turn it on when the Studio should not be in the request path of a live app.</p>
+      <p class="mt-2">The four reading examples were run against a real bucket, not written by hand: Python, Node and Go each fetched a published template, and the Kotlin one was compiled. If one of them does not work for you, that is a bug &mdash; please open an issue.</p>
     </footer>
   </main>
 

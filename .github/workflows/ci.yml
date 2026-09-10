@@ -47,6 +47,33 @@ jobs:
           if (failed) process.exit(1);
           JS
 
+      # Sections now link to each other, and the check above only sees anchors within one file.
+      # A cross-page link is the one that rots silently: renaming a section elsewhere leaves it
+      # pointing at a page that loads and then sits at the top, which reads as a broken product
+      # rather than a broken link.
+      - name: No dead cross-page anchors
+        run: |
+          node - <<'JS'
+          const fs = require('fs');
+          const ids = f => new Set([...fs.readFileSync(f, 'utf8').matchAll(/^\s*id:\s*'([\w-]+)'/gm)].map(m => m[1]));
+          const pages = Object.fromEntries(
+            fs.readdirSync('.', { recursive: true })
+              .filter(p => p.endsWith('docs.js'))
+              .map(p => [`/${p.replace(/\/docs\.js$/, '')}/`, ids(p)])
+          );
+          const sources = fs.readdirSync('.', { recursive: true })
+            .filter(p => (p.endsWith('.js') || p.endsWith('.html')) && !p.startsWith('.git'));
+          let dead = 0;
+          for (const f of sources) {
+            for (const [, page, anchor] of fs.readFileSync(f, 'utf8').matchAll(/href="(\/[a-z-]+\/)#([\w-]+)"/g)) {
+              if (!pages[page]) { console.error(`${f}: ${page} is not a documented section`); dead++; }
+              else if (!pages[page].has(anchor)) { console.error(`${f}: ${page}#${anchor} does not exist`); dead++; }
+            }
+          }
+          if (dead) process.exit(1);
+          console.log(`${Object.keys(pages).length} sections, no dead cross-page anchors`);
+          JS
+
       # The custom domain only works while this file says what it says.
       - name: CNAME intact
         run: |
