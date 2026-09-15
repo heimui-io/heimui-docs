@@ -422,6 +422,56 @@ application { mainClass.set("io.heimui.hydration.RunCorpusKt") }
     ]
   }
   ]
+},
+{
+  group: 'The Studio',
+  items: [
+  {
+    id: 'pasting-a-response', title: 'Pasting a response',
+    blocks: [
+      html(`<p>The Studio never calls your backend. To learn what a screen can show, it reads one response
+      you paste into it — the shape, the field names, the types — and keeps the values only to preview with.
+      Paste the body your endpoint really returns; this is what the Studio makes of it.</p>`),
+      table(['In the response', 'What the Studio reads'], [
+        ['An object at the top', 'An object: each of its fields, up to four levels deep — <code>store.owner.address.city</code>.'],
+        ['A list of objects', 'A list. The item is learned from every item, so a field missing from some of them is marked <em>may be absent</em>.'],
+        ['A single value', 'A value — <code>{{ count }}</code>.'],
+        ['An empty list', 'Kept as declared when the screen already knows it; otherwise the Studio asks for a response with at least one item.'],
+        ['A bare list, <code>[ … ]</code>', 'A list called <code>items</code>. Whatever hydrates the screen has to hand it over under that name.'],
+        ['<code>data</code>, <code>result</code>, <code>payload</code>, <code>response</code>, <code>body</code>, <code>content</code>', 'A wrapper. It is opened when the screen reads names inside it, and siblings such as <code>meta</code>, <code>status</code> or <code>pagination</code> are left out as metadata. The dialog says so, and can read the whole response instead.']
+      ]),
+      html(`<h3>What it cannot read yet</h3>
+      <p>None of these stops the rest of the response from being read, but nothing can be linked to them. The
+      dialog lists each one, with the reason, under <em>What the Studio could not read</em>.</p>`),
+      table(['Shape', 'Why', 'What to do'], [
+        ['<code>"tags": ["vegan", "new"]</code>', 'A list of plain values. The engine repeats it; the editor can only bind lists of objects.', 'Send objects — <code>[{ "label": "vegan" }]</code> — or bind it by hand.'],
+        ['A list inside an item or an object', 'Only lists at the top of the response can repeat.', 'Move it up: <code>variants</code> next to <code>products</code>, not inside each product.'],
+        ['Objects and plain values in one list — <code>[{ … }, "Sale"]</code>', 'Only the objects are read.', 'Send one shape per list.'],
+        ['More than four levels deep', 'The contract stops there.', 'Flatten it.'],
+        ['A field that is <code>null</code> everywhere', 'There is no type to learn from.', 'Paste a response where it has a value.'],
+        ['A number in one item and text in another', 'The first one seen is kept.', 'Pick one on the backend. For prices, a string.'],
+        ['A key with a dot or braces — <code>"opening.hours"</code>', 'An expression reads <code>opening.hours</code> as two steps.', 'Rename it: <code>opening_hours</code>.']
+      ]),
+      html(`<h3>Types</h3>`),
+      table(['Type', 'When'], [
+        ['<code>url</code>', 'Text starting with <code>http://</code>, <code>https://</code>, <code>//</code> or <code>data:image/</code>.'],
+        ['<code>date</code>', 'Text starting with <code>YYYY-MM-DD</code>, with or without a time.'],
+        ['<code>money</code>', 'Text that looks like an amount — <code>$9.99</code>, <code>€9,99</code>, <code>12.000 COP</code> — in a field whose name says it is one: price, amount, total, cost, fee, precio, monto, importe, costo, tarifa, preço, custo. Never from the name alone, and never a JSON number: a backend that sends <code>19.99</code> is described as sending a number.'],
+        ['<code>number</code>, <code>bool</code>', 'JSON numbers and booleans.'],
+        ['<code>string</code>', 'Everything else.']
+      ]),
+      html(`<h3>When the paste is not JSON</h3>
+      <p>The dialog gives the line and column where reading stopped, and recognises the usual culprits: a
+      trailing comma, single quotes, unquoted keys and comments — a response copied from a console rather than
+      from the wire — and a paste cut short on its way to the clipboard.</p>
+      <h3>Data nobody shows</h3>
+      <p>When the response carries something no component on the screen reads, the Data panel says so next to
+      it and offers <em>Propose a design</em>: the team's own presets first, bound to that data, then a plain
+      layout built from its shape. The proposal is previewed on the canvas with the pasted values, and nothing
+      is added to the screen until you insert it.</p>`)
+    ]
+  }
+  ]
 }
 ];
 
