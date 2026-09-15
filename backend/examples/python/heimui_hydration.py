@@ -140,18 +140,23 @@ class _Hydrator:
         self.policy = policy
         self.legacy = legacy
         self.unresolved: List[UnresolvedExpression] = []
+        # Where an expression is reported: the nearest enclosing object that has an id. An
+        # accessibility label or an action's payload has none of its own, and an empty one tells
+        # nobody where to look.
+        self.owner = ""
 
-    def node(self, node: Any, frames: Frames, scope: str) -> Any:
+    def node(self, node: Any, frames: Frames, scope: str, prop: str = "") -> Any:
         if isinstance(node, str):
-            return self.interpolate(node, frames, "", "")
+            return self.interpolate(node, frames, self.owner, prop)
         if isinstance(node, list):
-            return [self.node(item, frames, scope) for item in node]
+            return [self.node(item, frames, scope, prop) for item in node]
         if isinstance(node, dict):
             return self.obj(node, frames, scope)
         return node
 
     def obj(self, node: dict, frames: Frames, scope: str) -> dict:
-        node_id = _text_of(node.get("id")) if _is_primitive(node.get("id")) else ""
+        node_id = _text_of(node.get("id")) if _is_primitive(node.get("id")) else self.owner
+        previous, self.owner = self.owner, node_id
         frames = self._scoped(node, frames)
 
         declared = _read_binding(node.get("repeat"))
@@ -162,7 +167,9 @@ class _Hydrator:
         if repeat and bucket:
             result[bucket] = self._expand(node, bucket, repeat, declared is not None, frames, scope)
 
-        for key, value in node.items():
+        # Sorted: an object's unresolved expressions are reported in the order of its keys, which every
+        # implementation can reproduce -- Go's maps keep no order to follow.
+        for key, value in sorted(node.items()):
             if key in _AUTHORING_KEYS or key == bucket:
                 # Authoring keys never reach a device, and walking an expanded bucket again would
                 # report the same expression twice and substitute into text this pass produced.
@@ -170,9 +177,10 @@ class _Hydrator:
             result[key] = (
                 self.interpolate(value, frames, node_id, key)
                 if isinstance(value, str)
-                else self.node(value, frames, scope)
+                else self.node(value, frames, scope, key)
             )
 
+        self.owner = previous
         # Key order follows the authored document, with the expanded bucket back in its place.
         return {k: result[k] for k in node if k not in _AUTHORING_KEYS and k in result}
 
@@ -334,7 +342,8 @@ def _text_of(value: Any) -> str:
         return repr(value)
     if isinstance(value, int):
         return str(value)
-    return json.dumps(value, separators=(",", ":"), ensure_ascii=False)
+    # Sorted keys: the one order every implementation can write, since Go's maps keep none.
+    return json.dumps(value, separators=(",", ":"), ensure_ascii=False, sort_keys=True)
 
 
 def _holds_form_state(node: Any) -> bool:

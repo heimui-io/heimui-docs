@@ -93,7 +93,7 @@ jobs:
 
       # The backend guide makes one specific promise -- these implementations agree with the corpus
       # -- and a promise nothing verifies is one that quietly stops being true. Each of these runs
-      # the 22 published cases and fails on the first disagreement.
+      # the 25 published cases and fails on the first disagreement.
       #
       # Kotlin is absent on purpose: it is a JVM project rather than a script, and standing up
       # Gradle here costs more than it catches for a repository that is otherwise static files.

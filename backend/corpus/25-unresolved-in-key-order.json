@@ -1,0 +1,89 @@
+{
+  "name": "unresolved-in-key-order",
+  "why": "Within one object, engines reported unresolved expressions in whatever order they walked its keys: the document's in some languages, random in Go, whose maps keep no order at all. Within an object they are reported in the order of its keys sorted, which every language can reproduce; across nodes the order is still the document's.",
+  "options": {
+    "onUnresolved": "keep"
+  },
+  "screen": {
+    "id": "key_order",
+    "version": "1.0.0",
+    "root": {
+      "type": "container",
+      "id": "root",
+      "children": [
+        {
+          "type": "image",
+          "id": "hero",
+          "url": "{{ missing.url }}",
+          "a11y": {
+            "label": "{{ missing.label }}"
+          },
+          "content_scale": "{{ missing.scale }}"
+        },
+        {
+          "type": "text",
+          "id": "caption",
+          "text": "{{ missing.text }}",
+          "a11y": {
+            "label": "{{ missing.caption }}"
+          }
+        }
+      ]
+    }
+  },
+  "data": {},
+  "expected": {
+    "id": "key_order",
+    "version": "1.0.0",
+    "root": {
+      "type": "container",
+      "id": "root",
+      "children": [
+        {
+          "type": "image",
+          "id": "hero",
+          "url": "{{ missing.url }}",
+          "a11y": {
+            "label": "{{ missing.label }}"
+          },
+          "content_scale": "{{ missing.scale }}"
+        },
+        {
+          "type": "text",
+          "id": "caption",
+          "text": "{{ missing.text }}",
+          "a11y": {
+            "label": "{{ missing.caption }}"
+          }
+        }
+      ]
+    }
+  },
+  "expectedUnresolved": [
+    {
+      "nodeId": "hero",
+      "property": "label",
+      "expression": "missing.label"
+    },
+    {
+      "nodeId": "hero",
+      "property": "content_scale",
+      "expression": "missing.scale"
+    },
+    {
+      "nodeId": "hero",
+      "property": "url",
+      "expression": "missing.url"
+    },
+    {
+      "nodeId": "caption",
+      "property": "label",
+      "expression": "missing.caption"
+    },
+    {
+      "nodeId": "caption",
+      "property": "text",
+      "expression": "missing.text"
+    }
+  ]
+}

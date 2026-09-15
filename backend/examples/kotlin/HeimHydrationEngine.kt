@@ -97,11 +97,16 @@ object HeimHydrationEngine {
         data: JsonObject,
         ctx: Context,
         stateScope: String = "",
+        // Where an expression is reported: the nearest enclosing object that has an id, under the key
+        // that holds it. An accessibility label or an action's payload has no id of its own, and an
+        // empty one tells nobody where to look.
+        ownerId: String = "",
+        property: String = "",
     ): JsonElement = when (node) {
-        is JsonPrimitive -> if (node.isString) interpolate(node.content, frames, data, ctx, "", "") else node
-        is JsonArray -> JsonArray(node.map { hydrateNode(it, frames, data, ctx, stateScope) })
+        is JsonPrimitive -> if (node.isString) interpolate(node.content, frames, data, ctx, ownerId, property) else node
+        is JsonArray -> JsonArray(node.map { hydrateNode(it, frames, data, ctx, stateScope, ownerId, property) })
         JsonNull -> JsonNull
-        is JsonObject -> hydrateObject(node, frames, data, ctx, stateScope)
+        is JsonObject -> hydrateObject(node, frames, data, ctx, stateScope, ownerId)
     }
 
     private fun hydrateObject(
@@ -110,8 +115,9 @@ object HeimHydrationEngine {
         data: JsonObject,
         ctx: Context,
         stateScope: String = "",
+        ownerId: String = "",
     ): JsonObject {
-        val nodeId = node["id"]?.jsonPrimitive?.contentOrNull.orEmpty()
+        val nodeId = node["id"]?.jsonPrimitive?.contentOrNull ?: ownerId
 
         val declaredScope = readBinding(node["scope"])
         val scope = declaredScope ?: legacyScope(node, frames, data, ctx)
@@ -136,14 +142,14 @@ object HeimHydrationEngine {
             // Everything that is not a mould is content, not template. Replacing the whole bucket
             // with the expansion deleted it -- a footer, a "see all" link -- with no error anywhere.
             val (moulds, content) = splitMoulds(authored.toList(), repeat)
-            val trailing = content.map { hydrateNode(it, localFrames, data, ctx, stateScope) }
+            val trailing = content.map { hydrateNode(it, localFrames, data, ctx, stateScope, nodeId) }
             val collection = resolveSource(repeat.source, frames, data) as? JsonArray
             val aliases = if (declaredRepeat != null) listOf(repeat.alias) else legacyAliases(repeat.source)
 
             val expansion: List<JsonElement> = when {
                 moulds.isEmpty() -> emptyList()
                 collection == null || collection.isEmpty() ->
-                    repeat.empty?.let { listOf(hydrateNode(it, localFrames, data, ctx, stateScope)) } ?: emptyList()
+                    repeat.empty?.let { listOf(hydrateNode(it, localFrames, data, ctx, stateScope, nodeId)) } ?: emptyList()
                 else -> collection.flatMapIndexed { index, item ->
                     // A list of one shape has one mould; a feed of products, banners and separators
                     // picks the one whose `variant` matches. An entry no mould claims is left out
@@ -160,6 +166,7 @@ object HeimHydrationEngine {
                             data,
                             ctx,
                             if (scoped) itemScope else stateScope,
+                            nodeId,
                         )
                     )
                     listOf(
@@ -176,7 +183,9 @@ object HeimHydrationEngine {
             expandedBucket = bucket
         }
 
-        for ((key, value) in node) {
+        // Sorted: an object's unresolved expressions are reported in the order of its keys, which every
+        // implementation can reproduce -- Go's maps keep no order to follow.
+        for ((key, value) in node.entries.sortedBy { it.key }) {
             // Authoring-time keys never reach a device.
             if (key == "repeat" || key == "scope") continue
             // Already expanded above; walking it again would report the same unresolved expression
@@ -185,20 +194,28 @@ object HeimHydrationEngine {
             result[key] = when (value) {
                 is JsonPrimitive ->
                     if (value.isString) interpolate(value.content, localFrames, data, ctx, nodeId, key) else value
-                else -> hydrateNode(value, localFrames, data, ctx, stateScope)
+                else -> hydrateNode(value, localFrames, data, ctx, stateScope, nodeId, key)
             }
         }
 
         // Key order follows the authored document, with the expanded bucket back in its place.
-        if (expandedBucket != null) {
-            val ordered = LinkedHashMap<String, JsonElement>()
-            for (key in node.keys) {
-                if (key == "repeat" || key == "scope") continue
-                result[key]?.let { ordered[key] = it }
-            }
-            return JsonObject(ordered)
+        val ordered = LinkedHashMap<String, JsonElement>()
+        for (key in node.keys) {
+            if (key == "repeat" || key == "scope") continue
+            result[key]?.let { ordered[key] = it }
         }
-        return JsonObject(result)
+        return JsonObject(ordered)
+    }
+
+    /**
+     * A value written inside a string: JSON with every object's keys sorted, all the way down. Every
+     * implementation has to write the same text for the same object, and sorted is the one order they
+     * all can, since Go's maps keep none.
+     */
+    private fun canonical(element: JsonElement): JsonElement = when (element) {
+        is JsonObject -> JsonObject(element.keys.sorted().associateWith { canonical(element.getValue(it)) })
+        is JsonArray -> JsonArray(element.map { canonical(it) })
+        else -> element
     }
 
     private fun bucketOf(node: JsonObject): String? =
@@ -265,7 +282,7 @@ object HeimHydrationEngine {
                     }
                     is JsonNull -> ""
                     is JsonPrimitive -> value.content
-                    else -> value.toString()
+                    else -> canonical(value).toString()
                 }
             }
         }
@@ -366,7 +383,7 @@ object HeimHydrationEngine {
         val asString = when (value) {
             null, is JsonNull -> ""
             is JsonPrimitive -> value.content
-            else -> value.toString()
+            else -> canonical(value).toString()
         }
         return moulds.firstOrNull { variantOf(it) == asString }
             ?: moulds.firstOrNull { variantOf(it) == VARIANT_FALLBACK }

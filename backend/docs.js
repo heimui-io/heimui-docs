@@ -252,7 +252,7 @@ const SECTIONS = [
   {
     id: 'implementations', title: 'Python, Node, Kotlin and Go',
     blocks: [
-      html(`<p>Four implementations exist, written separately, agreeing on all 22 corpus cases. Take one,
+      html(`<p>Four implementations exist, written separately, agreeing on all 25 corpus cases. Take one,
       or write your own.</p>`),
       table(['Language', 'File', 'Runner', 'Dependencies'], [
         ['Python 3.9+', '<a href="/backend/examples/python/heimui_hydration.py">heimui_hydration.py</a>', '<a href="/backend/examples/python/run_corpus.py">run_corpus.py</a>', 'None — standard library'],
@@ -357,9 +357,9 @@ return result.Document`)
     id: 'corpus', title: 'The conformance corpus',
     blocks: [
       html(`<p>Do not trust a reading of this page. The definition of correct is the <strong>hydration
-      corpus</strong>: 22 JSON cases, each one a screen, a payload, the document a device should receive, and
+      corpus</strong>: 25 JSON cases, each one a screen, a payload, the document a device should receive, and
       the expressions that should have been reported.</p>
-      <p>Every implementation runs the same 22 cases. That is the entire reason engines written by different
+      <p>Every implementation runs the same 25 cases. That is the entire reason engines written by different
       people in different languages agree.</p>`),
       code(SH, `curl -sL https://github.com/heimui-io/heimui-docs/archive/refs/heads/main.tar.gz \\
   | tar -xz --strip-components=2 heimui-docs-main/backend
@@ -384,7 +384,7 @@ application { mainClass.set("io.heimui.hydration.RunCorpusKt") }
   …
   ok   22-repeat-variant-unclaimed.json
 
-22/22 cases pass.`),
+25/25 cases pass.`),
       html(`<p>Each case carries a <code>why</code> field naming the bug it exists to prevent. Read those
       before you start — they are the shortest description of the hard parts.</p>`),
       code(J, `{

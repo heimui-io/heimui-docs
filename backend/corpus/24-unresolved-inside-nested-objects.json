@@ -1,0 +1,115 @@
+{
+  "name": "unresolved-inside-nested-objects",
+  "why": "An expression inside an object that is not a component itself -- an accessibility label, an action's payload, a list of hints -- was reported with an empty nodeId, which tells nobody where to look. It is reported against the nearest enclosing object that has an id, under the key that holds it.",
+  "options": {
+    "onUnresolved": "blank"
+  },
+  "screen": {
+    "id": "nested_unresolved",
+    "version": "1.0.0",
+    "root": {
+      "type": "container",
+      "id": "root",
+      "children": [
+        {
+          "type": "button",
+          "id": "buy",
+          "title": "Buy",
+          "a11y": {
+            "label": "Buy {{ product.name }}"
+          }
+        },
+        {
+          "type": "button",
+          "id": "pay",
+          "title": "Pay",
+          "actions": [
+            {
+              "type": "submit_form",
+              "endpoint": "/pay",
+              "payload": {
+                "sku": "{{ product.sku }}",
+                "email": "{{state.email}}"
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "notes",
+          "text": "Notes",
+          "a11y": {
+            "hints": [
+              "{{ product.hint }}",
+              "plain"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "data": {
+    "product": {}
+  },
+  "expected": {
+    "id": "nested_unresolved",
+    "version": "1.0.0",
+    "root": {
+      "type": "container",
+      "id": "root",
+      "children": [
+        {
+          "type": "button",
+          "id": "buy",
+          "title": "Buy",
+          "a11y": {
+            "label": "Buy "
+          }
+        },
+        {
+          "type": "button",
+          "id": "pay",
+          "title": "Pay",
+          "actions": [
+            {
+              "type": "submit_form",
+              "endpoint": "/pay",
+              "payload": {
+                "sku": "",
+                "email": "{{state.email}}"
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "notes",
+          "text": "Notes",
+          "a11y": {
+            "hints": [
+              "",
+              "plain"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expectedUnresolved": [
+    {
+      "nodeId": "buy",
+      "property": "label",
+      "expression": "product.name"
+    },
+    {
+      "nodeId": "pay",
+      "property": "sku",
+      "expression": "product.sku"
+    },
+    {
+      "nodeId": "notes",
+      "property": "hints",
+      "expression": "product.hint"
+    }
+  ]
+}

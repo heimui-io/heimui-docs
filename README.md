@@ -7,7 +7,7 @@ Source of **[heimui.io](https://heimui.io)**.
 The [backend guide](https://heimui.io/backend/) sends people here for two things.
 
 **Four reference implementations of hydration**, in `backend/examples/`. Each is one file that merges
-a screen template with a payload, and each passes all 22 conformance cases.
+a screen template with a payload, and each passes all 25 conformance cases.
 
 | Language | File | Dependencies |
 | --- | --- | --- |
@@ -16,7 +16,7 @@ a screen template with a payload, and each passes all 22 conformance cases.
 | Kotlin (JVM) | `examples/kotlin/HeimHydrationEngine.kt` | kotlinx-serialization-json |
 | Go 1.21+ | `examples/go/hydration.go` | none — standard library |
 
-**The conformance corpus**, in `backend/corpus/`: 22 cases, each one a screen, a payload, the
+**The conformance corpus**, in `backend/corpus/`: 25 cases, each one a screen, a payload, the
 document a device should receive, and the expressions that should have been reported as unresolved.
 It is what decides whether an implementation is correct — including one you write in a language not
 listed above.

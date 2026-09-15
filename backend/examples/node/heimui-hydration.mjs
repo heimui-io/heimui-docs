@@ -37,7 +37,7 @@ export function hydrateWithReport(screen, data, policy = UnresolvedPolicy.KEEP) 
     return { document: screen, unresolved: [] };
   }
 
-  const hydratedRoot = hydrateNode(screen.root, [], data, ctx, '');
+  const hydratedRoot = hydrateNode(screen.root, [], data, ctx, '', '', '');
 
   // Everything the author wrote travels unchanged, except the declared contract: that is
   // authoring-time information and a device has no use for it.
@@ -55,15 +55,20 @@ export function hydrate(screen, data, policy = UnresolvedPolicy.KEEP) {
 
 // ------------------------------------------------------------------ walk
 
-function hydrateNode(node, frames, data, ctx, stateScope) {
-  if (typeof node === 'string') return interpolate(node, frames, data, ctx, '', '');
-  if (Array.isArray(node)) return node.map((item) => hydrateNode(item, frames, data, ctx, stateScope));
-  if (node !== null && typeof node === 'object') return hydrateObject(node, frames, data, ctx, stateScope);
+/**
+ * `ownerId` and `property` say where an expression is reported: against the nearest enclosing object
+ * that has an id, under the key that holds it. An accessibility label or an action's payload has no id
+ * of its own, and an empty one tells nobody where to look.
+ */
+function hydrateNode(node, frames, data, ctx, stateScope, ownerId = '', property = '') {
+  if (typeof node === 'string') return interpolate(node, frames, data, ctx, ownerId, property);
+  if (Array.isArray(node)) return node.map((item) => hydrateNode(item, frames, data, ctx, stateScope, ownerId, property));
+  if (node !== null && typeof node === 'object') return hydrateObject(node, frames, data, ctx, stateScope, ownerId);
   return node;
 }
 
-function hydrateObject(node, frames, data, ctx, stateScope) {
-  const nodeId = isPrimitive(node.id) ? textOf(node.id) : '';
+function hydrateObject(node, frames, data, ctx, stateScope, ownerId = '') {
+  const nodeId = isPrimitive(node.id) ? textOf(node.id) : ownerId;
 
   const declaredScope = readBinding(node.scope);
   const scope = declaredScope ?? legacyScope(node, frames, data, ctx);
@@ -89,7 +94,7 @@ function hydrateObject(node, frames, data, ctx, stateScope) {
     // Everything that is not a mould is content, not template. Replacing the whole bucket with the
     // expansion deletes it -- a footer, a "see all" link -- with no error anywhere.
     const { moulds, content } = splitMoulds(authored, repeat);
-    const trailing = content.map((c) => hydrateNode(c, localFrames, data, ctx, stateScope));
+    const trailing = content.map((c) => hydrateNode(c, localFrames, data, ctx, stateScope, nodeId, bucket));
 
     const resolved = resolveSource(repeat.source, frames, data);
     const collection = Array.isArray(resolved) ? resolved : null;
@@ -100,7 +105,7 @@ function hydrateObject(node, frames, data, ctx, stateScope) {
       expansion = [];
     } else if (collection === null || collection.length === 0) {
       if (repeat.empty !== MISSING) {
-        expansion = [hydrateNode(repeat.empty, localFrames, data, ctx, stateScope)];
+        expansion = [hydrateNode(repeat.empty, localFrames, data, ctx, stateScope, nodeId, 'empty')];
       }
     } else {
       collection.forEach((item, index) => {
@@ -120,6 +125,8 @@ function hydrateObject(node, frames, data, ctx, stateScope) {
             data,
             ctx,
             scoped ? itemScope : stateScope,
+            nodeId,
+            bucket,
           ),
         );
         if (scoped && isPlainObject(copy)) copy = { ...copy, state_scope: itemScope };
@@ -131,7 +138,10 @@ function hydrateObject(node, frames, data, ctx, stateScope) {
     expandedBucket = bucket;
   }
 
-  for (const [key, value] of Object.entries(node)) {
+  // Sorted: an object's unresolved expressions are reported in the order of its keys, which every
+  // implementation can reproduce -- Go's maps keep no order to follow.
+  for (const key of Object.keys(node).sort()) {
+    const value = node[key];
     // Authoring-time keys never reach a device.
     if (key === 'repeat' || key === 'scope') continue;
     // Already expanded above; walking it again would report the same unresolved expression twice
@@ -140,19 +150,16 @@ function hydrateObject(node, frames, data, ctx, stateScope) {
     result[key] =
       typeof value === 'string'
         ? interpolate(value, localFrames, data, ctx, nodeId, key)
-        : hydrateNode(value, localFrames, data, ctx, stateScope);
+        : hydrateNode(value, localFrames, data, ctx, stateScope, nodeId, key);
   }
 
   // Key order follows the authored document, with the expanded bucket back in its place.
-  if (expandedBucket !== null) {
-    const ordered = {};
-    for (const key of Object.keys(node)) {
-      if (key === 'repeat' || key === 'scope') continue;
-      if (key in result) ordered[key] = result[key];
-    }
-    return ordered;
+  const ordered = {};
+  for (const key of Object.keys(node)) {
+    if (key === 'repeat' || key === 'scope') continue;
+    if (key in result) ordered[key] = result[key];
   }
-  return result;
+  return ordered;
 }
 
 function bucketOf(node) {
@@ -278,7 +285,20 @@ function textOf(value) {
   if (value === null || value === undefined) return '';
   if (typeof value === 'string') return value;
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-  return JSON.stringify(value);
+  return JSON.stringify(sortedKeys(value));
+}
+
+/**
+ * An object with its keys sorted, all the way down.
+ *
+ * Every implementation has to write the same text for the same object, and sorted is the one order
+ * they all can: Go's maps have none to keep. One more caveat that is JavaScript's: keys that look like
+ * integers always come first in a JavaScript object, whatever order they are added in.
+ */
+function sortedKeys(value) {
+  if (Array.isArray(value)) return value.map(sortedKeys);
+  if (isPlainObject(value)) return Object.fromEntries(Object.keys(value).sort().map((key) => [key, sortedKeys(value[key])]));
+  return value;
 }
 
 // ------------------------------------------------------------------ bindings

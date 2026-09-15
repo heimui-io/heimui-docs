@@ -15,6 +15,7 @@
 package hydration
 
 import (
+	"bytes"
 	"encoding/json"
 	"regexp"
 	"slices"
@@ -88,7 +89,7 @@ func HydrateWithReport(screen, data map[string]any, policy Policy) Result {
 	}
 
 	h := &hydrator{data: data, policy: policy, legacy: legacyBindingsOf(screen)}
-	hydrated := h.node(root, nil, "")
+	hydrated := h.node(root, nil, "", "")
 
 	// Everything the author wrote travels unchanged, except the declared contract: that is
 	// authoring-time information and a device has no use for it.
@@ -114,16 +115,20 @@ type hydrator struct {
 	policy     Policy
 	legacy     map[string]string
 	unresolved []Unresolved
+	// owner is where an expression is reported: the nearest enclosing object that has an id. An
+	// accessibility label or an action's payload has none of its own, and an empty one tells nobody
+	// where to look.
+	owner string
 }
 
-func (h *hydrator) node(n any, frames []frame, scope string) any {
+func (h *hydrator) node(n any, frames []frame, scope string, property string) any {
 	switch v := n.(type) {
 	case string:
-		return h.interpolate(v, frames, "", "")
+		return h.interpolate(v, frames, h.owner, property)
 	case []any:
 		out := make([]any, len(v))
 		for i, item := range v {
-			out[i] = h.node(item, frames, scope)
+			out[i] = h.node(item, frames, scope, property)
 		}
 		return out
 	case map[string]any:
@@ -134,10 +139,13 @@ func (h *hydrator) node(n any, frames []frame, scope string) any {
 }
 
 func (h *hydrator) object(n map[string]any, frames []frame, scope string) map[string]any {
-	nodeID := ""
+	nodeID := h.owner
 	if id, ok := n["id"]; ok && isPrimitive(id) {
 		nodeID = textOf(id)
 	}
+	previous := h.owner
+	h.owner = nodeID
+	defer func() { h.owner = previous }()
 	frames = h.scoped(n, frames)
 
 	declared := readBinding(n["repeat"])
@@ -156,7 +164,15 @@ func (h *hydrator) object(n map[string]any, frames []frame, scope string) map[st
 		result[bucket] = h.expand(n, bucket, repeat, declared != nil, frames, scope)
 	}
 
-	for key, value := range n {
+	// Sorted, because a map has no order to keep: an object's unresolved expressions are reported in the
+	// order of its keys, which every implementation can reproduce.
+	keys := make([]string, 0, len(n))
+	for key := range n {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+	for _, key := range keys {
+		value := n[key]
 		// Authoring keys never reach a device, and walking an expanded bucket again would report
 		// the same expression twice and substitute into text this pass produced.
 		if key == "repeat" || key == "scope" || key == bucket {
@@ -165,7 +181,7 @@ func (h *hydrator) object(n map[string]any, frames []frame, scope string) map[st
 		if s, ok := value.(string); ok {
 			result[key] = h.interpolate(s, frames, nodeID, key)
 		} else {
-			result[key] = h.node(value, frames, scope)
+			result[key] = h.node(value, frames, scope, key)
 		}
 	}
 	return result
@@ -197,7 +213,7 @@ func (h *hydrator) expand(n map[string]any, bucket string, repeat *binding, decl
 	moulds, content := splitMoulds(authored, repeat)
 	trailing := make([]any, 0, len(content))
 	for _, c := range content {
-		trailing = append(trailing, h.node(c, frames, scope))
+		trailing = append(trailing, h.node(c, frames, scope, bucket))
 	}
 	if len(moulds) == 0 {
 		return trailing
@@ -209,7 +225,7 @@ func (h *hydrator) expand(n map[string]any, bucket string, repeat *binding, decl
 		if !repeat.hasEmpty {
 			return trailing
 		}
-		return append([]any{h.node(repeat.empty, frames, scope)}, trailing...)
+		return append([]any{h.node(repeat.empty, frames, scope, "empty")}, trailing...)
 	}
 
 	aliases := aliasesFor(repeat, declared)
@@ -235,7 +251,7 @@ func (h *hydrator) expand(n map[string]any, bucket string, repeat *binding, decl
 		if scoped {
 			inner = rowScope
 		}
-		row := stripVariant(h.node(mould, append(frames[:len(frames):len(frames)], frame{aliases, value, item}), inner))
+		row := stripVariant(h.node(mould, append(frames[:len(frames):len(frames)], frame{aliases, value, item}), inner, bucket))
 		if obj, ok := row.(map[string]any); ok && scoped {
 			obj["state_scope"] = rowScope
 		}
@@ -367,11 +383,15 @@ func textOf(value any) string {
 	case float64:
 		return strconv.FormatFloat(v, 'f', -1, 64)
 	default:
-		encoded, err := json.Marshal(v)
-		if err != nil {
+		// Sorted keys, which encoding/json writes for a map anyway, and no HTML escaping: `a < b` is
+		// text on a screen, not markup in a page.
+		var buffer bytes.Buffer
+		encoder := json.NewEncoder(&buffer)
+		encoder.SetEscapeHTML(false)
+		if err := encoder.Encode(v); err != nil {
 			return ""
 		}
-		return string(encoded)
+		return strings.TrimSuffix(buffer.String(), "\n")
 	}
 }
 
