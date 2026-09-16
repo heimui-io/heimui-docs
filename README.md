@@ -2,6 +2,15 @@
 
 Source of **[heimui.io](https://heimui.io)**.
 
+## The ecosystem
+
+| | | |
+| --- | --- | --- |
+| **[Core SDK](https://github.com/heimui-io/heimui-core)** | Renders the screens on Android and iOS | Apache 2.0 |
+| **[Documentation](https://heimui.io)** | Guides, the screen schema, hydration and signing | [heimui-docs](https://github.com/heimui-io/heimui-docs) |
+| **[Demo app](https://github.com/heimui-io/heimui-demo)** | A full integration you can run | Apache 2.0 |
+| **HeimUI Studio** | The visual editor that authors and publishes screens | Commercial — [heimui.io/studio](https://heimui.io/studio/) |
+
 ## What you probably came for
 
 The [backend guide](https://heimui.io/backend/) sends people here for two things.
