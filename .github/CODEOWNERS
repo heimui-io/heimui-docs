@@ -1,0 +1,7 @@
+# Everything in this repository is owned by one person, so every pull request that touches any path
+# requests their review automatically. This file only assigns the reviewer; making that review
+# required is a branch rule ("require review from Code Owners"), not something CODEOWNERS can do on
+# its own. GitHub never asks the author of a pull request to review it, so this has no effect on
+# changes pushed by the owner -- it exists for contributions that arrive from outside.
+
+* @julianvelandia23
