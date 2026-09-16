@@ -318,6 +318,48 @@ done`),
   group: 'Operating it',
   items: [
   {
+    id: 'deployment', title: 'What it needs to run',
+    blocks: [
+      html(`<p>A JVM serving JSON out of a SQLite file. The numbers below are measured, not estimated:</p>`),
+
+      table(['', ''], [
+        ['<strong>Image</strong>', '610 MB — a JRE 21, the server jar, and the editor bundled inside it'],
+        ['<strong>Memory</strong>', 'About 280 MB resident with a small catalogue. Give it 1 GB'],
+        ['<strong>CPU</strong>', 'Idles at nothing. One core is more than enough; the work is reading a file and validating JSON'],
+        ['<strong>Disk</strong>', 'The database, its write-ahead log, and the signing folder. Screens are text — a large catalogue is megabytes'],
+        ['<strong>Network</strong>', 'One port, <code>8080</code> by default']
+      ]),
+
+      html(`<h3>One Studio per database</h3>
+      <p>The store is SQLite in WAL mode with a busy timeout, which makes concurrent saves from several
+      authors wait for each other rather than lose one. What it does <strong>not</strong> make safe is two
+      containers on one volume: WAL over a network filesystem is where SQLite corruption stories come
+      from.</p>
+      <p>So run one. If a second exists for availability, only one may write, and both need
+      <a href="#signing-key">the same signing key</a> — otherwise half the screens a device fetches are
+      signed by a key the app has never heard of.</p>`),
+
+      note('tip', `The honest answer to "what if the Studio is down" is not a second Studio. It is not
+      being in the request path at all: <a href="/storage/#why">mirror publications into a bucket</a>, or
+      let your backend hold the template. An editor that is down then stops <em>editing</em>, and nothing
+      else.`),
+
+      html(`<h3>Upgrading</h3>
+      <p>A new image against the same <code>/data</code> volume. The store migrates its schema on start
+      and takes its own copy first — <code>studio.db.pre-v0</code> beside the database — so a migration
+      that goes wrong is a file to put back rather than a restore from yesterday.</p>
+
+      <h3>Watching it</h3>`),
+
+      code(SH, `curl -s http://localhost:8080/health
+# {"status":"ok","screens":42}`),
+
+      html(`<p>No token required, which is what lets a load balancer use it for liveness and readiness.
+      It answers only that the process is up and how many screens it holds — enough to tell a hung
+      container from a healthy one, and nothing a stranger can learn from.</p>`)
+    ]
+  },
+  {
     id: 'access', title: 'Access',
     blocks: [
       html(`<p>Two things guard <code>/api</code>, because they answer different questions.</p>`),

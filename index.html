@@ -144,6 +144,71 @@ tailwind.config = { theme: { extend: {
 
   </div>
 
+  <!--
+    The four cards say what each piece is; none of them said what a company actually deploys, in what
+    order, or which pieces it can skip. Somebody arriving here to decide whether to adopt this needs
+    that before they need any one section.
+  -->
+  <section class="mt-20 border-t border-edge pt-12">
+    <h2 class="text-2xl font-semibold">What you run</h2>
+    <p class="mt-3 max-w-2xl leading-relaxed text-muted">
+      All of it, on your own infrastructure. There is no account to create and nothing of ours between
+      your screens and your users: the Studio is one container against a file on your disk, and the SDK
+      only ever talks to hosts your app names.
+    </p>
+
+    <pre class="mt-6 overflow-x-auto rounded-xl border border-edge bg-[#0d1220] p-4 font-mono text-[13px] leading-relaxed text-muted">YOUR INFRASTRUCTURE                                      THE DEVICE
+
+  Studio ──┬── serves /screens ────────────────────────▶   your app
+ (editor)  │                                               + HeimUI SDK
+           ├── template ──▶ your backend ──▶ hydrated ──▶
+           │                (your data, your auth)
+           └── publishes ──▶ your bucket / CDN ─────────▶</pre>
+
+    <div class="mt-8 grid gap-x-10 gap-y-6 sm:grid-cols-3">
+      <div>
+        <h3 class="font-semibold">The Studio serves them</h3>
+        <p class="mt-1 text-sm leading-relaxed text-muted">
+          Fewest moving parts, and where everyone starts. The editor answers the device directly, with
+          environments and read keys deciding who may read what.
+        </p>
+      </div>
+      <div>
+        <h3 class="font-semibold">Your backend serves them</h3>
+        <p class="mt-1 text-sm leading-relaxed text-muted">
+          For a screen that shows <em>data</em> — a balance, a cart, a name. Your service reads the
+          template, fills it with what it knows, and answers. Your auth never leaves your stack.
+        </p>
+      </div>
+      <div>
+        <h3 class="font-semibold">A bucket or CDN serves them</h3>
+        <p class="mt-1 text-sm leading-relaxed text-muted">
+          For screens with no data in them, and when no editor should sit in the request path of a live
+          app. The Studio mirrors every publication into a bucket you own.
+        </p>
+      </div>
+    </div>
+
+    <p class="mt-6 max-w-2xl leading-relaxed text-muted">
+      They are not exclusive: most teams serve a login page from one and a home screen from another.
+      Two of the three are optional, and the SDK does not know the difference.
+    </p>
+
+    <h3 class="mt-10 text-lg font-semibold">The order it happens in</h3>
+    <ol class="mt-3 max-w-2xl list-decimal space-y-2 pl-5 text-sm leading-relaxed text-muted">
+      <li><a class="text-cyan hover:underline" href="/studio/#run">Run the Studio</a> — one container, one file on disk, and the settings a deployment can set.</li>
+      <li><a class="text-cyan hover:underline" href="/studio/#drafts">Author a screen and publish it</a>, which is a different act from saving one.</li>
+      <li>Decide who serves it: <a class="text-cyan hover:underline" href="/studio/#environments">the Studio</a>,
+        <a class="text-cyan hover:underline" href="/backend/#hydration">your backend</a>, or
+        <a class="text-cyan hover:underline" href="/storage/#why">a bucket you own</a>.</li>
+      <li><a class="text-cyan hover:underline" href="/sdk/#quickstart">Point the app at it</a> — one base URL, and screens render as native Compose.</li>
+      <li><a class="text-cyan hover:underline" href="/sdk/#signing">Turn on signatures</a> when the app should refuse any screen you did not produce. Optional, and off until you ask for it.</li>
+      <li>Operate it: <a class="text-cyan hover:underline" href="/studio/#access">access</a>,
+        <a class="text-cyan hover:underline" href="/studio/#signing-key">the signing key</a> and
+        <a class="text-cyan hover:underline" href="/studio/#backup">what to back up</a>.</li>
+    </ol>
+  </section>
+
   <section class="mt-20 border-t border-edge pt-12">
     <h2 class="text-2xl font-semibold">Why it is built this way</h2>
     <p class="mt-3 max-w-2xl leading-relaxed text-muted">
