@@ -1153,11 +1153,30 @@ HeimScreen(screenId = "checkout", onAction = {}, repository = repository)`),
       <code>src/debug</code> so the release build never carries it), and iOS an ATS exception. Ship neither in
       a release build.`),
       html(`<h3>R8 and obfuscation</h3>
-      <p>The SDK ships consumer keep rules covering its polymorphic serialization, so R8 in your app will not
-      break payload parsing. That failure is the classic release-only surprise: the debug build passes and the
-      release fails to parse a screen it handled fine.</p>`),
-      note('warning', `Verify it yourself anyway. Build one minified release and open a screen — it takes a
-      minute and it is the only way to know.`)
+      <p><strong>Android.</strong> From <code>0.0.1-alpha-2</code> the AAR carries its keep rules as
+      <code>proguard.txt</code>, so R8 in your app applies them automatically — there is nothing to copy
+      into your own <code>proguard-rules.pro</code>. They cover the serializable DTOs, their generated
+      serializers, the enum constants and the component constructors. <code>0.0.1-alpha-1</code> shipped
+      without them by mistake; if you are on it, either move up or paste
+      <a href="https://github.com/heimui-io/heimui-core/blob/main/shared/consumer-rules.pro"
+      target="_blank" rel="noopener">consumer-rules.pro</a> into your own rules.</p>
+      <p>Two things make the SDK structurally hard for R8 to break, and they are worth knowing because they
+      also tell you where <em>your</em> code is exposed. Every polymorphic subtype declares an explicit
+      <code>@SerialName</code>, so the discriminator in the JSON is a literal string rather than a class
+      name: R8 is free to rename <code>TextComponentDto</code> to <code>a.b.c</code> and parsing still
+      works. And nothing is looked up by name at runtime — the serializers are generated at compile time
+      and reached by direct reference.</p>`),
+      note('warning', `Verify it anyway, and verify your own models. Build one minified release and open a
+      screen. If you define serializable types of your own, give each polymorphic subtype an explicit
+      <code>@SerialName</code> and keep them in your rules — that failure is the classic release-only
+      surprise: the debug build passes and the release cannot parse a payload it handled fine.`),
+      html(`<p><strong>iOS.</strong> Nothing to configure, and no equivalent risk. Kotlin/Native compiles
+      ahead of time to machine code, so there is no bytecode shrinker renaming types and no step that can
+      pull the discriminator out from under the parser. The framework is built static, and Apple's
+      toolchain only strips symbols nothing references.</p>
+      <p>If your organisation runs a commercial iOS obfuscator over the finished app, that is a different
+      tool with different reach: it can rewrite the Objective-C symbols the framework exports. Test a build
+      with it before you rely on it — but it is your pipeline's decision, not an SDK setting.</p>`)
     ]
   },
   {
