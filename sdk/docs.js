@@ -130,8 +130,10 @@ fun HomeRoute(navController: NavController) {
         ['<code>allowedSubmitHosts</code>', '<code>Set&lt;String&gt;</code>', 'Hosts a <code>submit_form</code> may post to besides your origin. A payload cannot exfiltrate the token to a host you did not list.'],
         ['<code>allowCleartextHosts</code>', '<code>Set&lt;String&gt;</code>', 'Hosts reachable over cleartext <code>http://</code> — a local backend during development. Loopback and <code>baseUrl</code>\'s own host need no entry; everything a payload can name does. Empty in production. See <a href="#security">Security model</a>.'],
         ['<code>customHttpClient</code>', '<code>HttpClient?</code>', 'Your own Ktor client — interceptors, certificate pinning, a shared connection pool.'],
-        ['<code>verifySignatures</code>', '<code>Boolean</code>', 'Refuse payloads whose signature does not verify. Cached copies are re-checked before rendering, not only when stored.'],
-        ['<code>publicKey</code>', '<code>String?</code>', 'The key signatures are checked against.'],
+        ['<code>trustedSigningKeys</code>', '<code>Set&lt;String&gt;</code>', 'Public keys whose ES256 signatures this app accepts — the Studio&rsquo;s for what it serves, your backend&rsquo;s for what it hydrates, and both halves of a key rotation. Setting it turns verification on. See <a href="#signing">Signed screens</a>.'],
+        ['<code>publicScreenHosts</code>', '<code>Set&lt;String&gt;</code>', 'Hosts a screen may be read from with no credentials: a public bucket or a CDN. Allowed across origins, and never sent an <code>Authorization</code> header.'],
+        ['<code>verifySignatures</code>', '<code>Boolean</code>', 'Refuse payloads whose signature does not verify. Cached copies are re-checked before rendering, not only when stored. Implied by <code>trustedSigningKeys</code>.'],
+        ['<code>publicKey</code>', '<code>String?</code>', '<strong>Legacy.</strong> A shared HMAC secret, which has to be on the device to be checked there — so whoever extracts it can sign screens the app accepts. Use <code>trustedSigningKeys</code>.'],
         ['<code>customSignatureVerifier</code>', '<code>HeimSignatureVerifier?</code>', 'Your own verification, if your scheme is not the default.'],
         ['<code>emergencyBundleProvider</code>', '<code>HeimEmergencyBundleProvider?</code>', 'Payloads compiled into the app, shown when the network and the cache both have nothing.'],
         ['<code>customCacheDataSource</code>', '<code>HeimCacheDataSource?</code>', 'Where cached screens live. See <a href="#caching">Caching</a>.']
@@ -140,8 +142,7 @@ fun HomeRoute(navController: NavController) {
     HeimConfig(
         baseUrl = "https://api.yourcompany.com/sdui",
         allowedSubmitHosts = setOf("forms.yourcompany.com"),
-        verifySignatures = true,
-        publicKey = BuildConfig.HEIMUI_PUBLIC_KEY,
+        trustedSigningKeys = setOf(BuildConfig.HEIMUI_STUDIO_KEY, BuildConfig.HEIMUI_BACKEND_KEY),
         customCacheDataSource = DriverBackedHeimCacheDataSource(driver = YourStorageDriver()),
     )
 )`),
@@ -180,6 +181,140 @@ fun HomeRoute(navController: NavController) {
       re-initialisation. HeimUI never stores, caches or refreshes it — token lifecycle stays entirely yours. A
       blank or whitespace-only return is treated as no token rather than sending an empty header, which some
       gateways reject outright.</p>`)
+    ]
+  },
+  {
+    id: 'signing', title: 'Signed screens',
+    blocks: [
+      html(`<p>A screen is instructions your app obeys. TLS already stops somebody rewriting one in
+      flight; signatures answer the question TLS does not: <strong>did this screen come from you?</strong>
+      Trust the public keys of whoever signs, and the app renders those screens and nothing else.</p>
+
+      <p><strong>This is off by default, and nothing here is required to ship an app.</strong> An app that
+      lists no keys verifies nothing and works exactly as it did — TLS, and your own service, which is
+      where most systems stop. Turn it on when a screen is worth more than the network it crossed:
+      a transfer, a limit, a consent, a price.</p>`),
+
+      table(['What it stops', 'How it happens in practice'], [
+        ['A screen nobody on your side produced', 'A bucket left writable, a CDN account somebody else got into, a stolen deploy credential'],
+        ['A screen changed after you produced it', 'A proxy with a certificate the device already trusts, common on managed fleets'],
+        ['A cache written on the device', 'A rooted or jailbroken phone, where the cache file is a file like any other'],
+        ['A submission answered with a screen of somebody else&rsquo;s choosing', 'The response to <code>submit_form</code> is a screen too, and is held to the same signature']
+      ]),
+
+      note('security', `The key an app carries is a <strong>public</strong> key: it verifies and cannot sign.
+      Extracting it from an APK gains an attacker nothing, which is the whole reason this is asymmetric.
+      The signing key never leaves the Studio or your backend. Never ship a private key in an app.`),
+
+      html(`<h3>Who signs what</h3>
+      <p>One rule decides it: <strong>whoever produces the bytes the device receives signs them.</strong>
+      A signature covers exact bytes, so anything that changes a byte invalidates it — and hydration
+      changes bytes.</p>`),
+
+      table(['How the screen reaches the device', 'Who signs', 'How the signature travels'], [
+        ['Straight from the Studio — <code>/screens/@release/terms</code>', 'The Studio', '<code>X-Heim-Signature</code> header'],
+        ['Your backend hydrates it and answers', 'Your backend, after hydrating', '<code>X-Heim-Signature</code> header'],
+        ['Your backend passes a template through unchanged', 'Whoever signed it, forwarded', 'Forward the header you received'],
+        ['A public bucket or CDN the device reads directly', 'The Studio, when it writes the copy', 'Inside the object — see <a href="/storage/#sealed-copies">sealed copies</a>']
+      ]),
+
+      html(`<h3>Turning it on</h3>
+      <p>Two keys is the normal case, not an edge case: the Studio signs what it serves and what it
+      writes to a bucket, your backend signs what it hydrates.</p>`),
+
+      code(K, `HeimUI.initialize(
+    HeimConfig(
+        baseUrl = "https://api.yourcompany.com/sdui",
+        trustedSigningKeys = setOf(
+            BuildConfig.HEIMUI_STUDIO_KEY,    // Settings, Screen signing, in the Studio
+            BuildConfig.HEIMUI_BACKEND_KEY,   // whatever your service prints at startup
+        ),
+        // Only if the app reads screens straight from a bucket or CDN.
+        publicScreenHosts = setOf("screens.yourcompany.com"),
+    )
+)`),
+
+      note('note', `Setting <code>trustedSigningKeys</code> turns verification on by itself, so a key list
+      can never ship with verification quietly off. A key that is not a P-256 public key fails
+      <code>initialize</code> at startup, naming which one — rather than rejecting every screen later.`),
+
+      html(`<h3><code>publicScreenHosts</code> is an exception list</h3>
+      <p>It is <em>not</em> where your screens live — that is <code>baseUrl</code>, and it does not change.
+      By default the SDK <strong>refuses</strong> a screen URL on any other host, because a payload naming
+      <code>https://elsewhere.example/x.json</code> would otherwise be fetched with the session token
+      attached. Listing a host here says two things at once: screens may be read from it, and
+      <strong>nothing authenticates that request</strong> — the token provider is not even asked.</p>`),
+
+      code(K, `HeimConfig(
+    baseUrl = "https://api.yourcompany.com/sdui",          // where your screens live
+    publicScreenHosts = setOf("screens.yourcompany.com"),  // the bucket or CDN, read with nothing attached
+)
+
+HeimScreen(screenId = "home")   // relative: your API, with whatever your token provider returns
+HeimScreen(screenId = "https://screens.yourcompany.com/public/@release/login.json")   // the object, bare`),
+
+      note('note', `If <em>every</em> screen comes from the bucket, that host is your <code>baseUrl</code>
+      and belongs in this set as well — then relative screen ids are read without credentials too. The
+      host is what decides, not the shape of the id. Cleartext <code>http://</code> is still refused
+      unless the host is in <code>allowCleartextHosts</code>.`),
+
+      html(`<h3>What the SDK checks</h3>`),
+
+      table(['Check', 'Why'], [
+        ['The algorithm is exactly <code>ES256</code>', 'A verifier that believes the header would accept <code>alg: none</code>'],
+        ['The <code>kid</code> is one of your keys', 'A valid signature by somebody else is still somebody else'],
+        ['The signature covers the bytes as received', 'Not a re-serialised copy, not the parsed tree'],
+        ['The cached copy, again, before it is rendered', 'A cache file on a rooted device is attacker-writable'],
+        ['Screens returned by <code>submit_form</code>', 'Otherwise a submission endpoint is a way around all of it'],
+        ['Nothing half-understood — <code>crit</code>, <code>b64</code>, padded base64', 'Two spellings of one payload must not both verify']
+      ]),
+
+      html(`<h3>The format</h3>
+      <p>JWS (RFC 7515), so any JOSE library produces it, and the SDK accepts exactly one shape of it:
+      <code>ES256</code>, a <code>kid</code> that is the RFC 7638 thumbprint of the public key, a signature
+      as raw <code>r || s</code>, everything unpadded base64url. A served screen carries a detached JWS in
+      <code>X-Heim-Signature</code>; an object in a bucket carries the flattened JSON form.</p>`),
+
+      code(SH, `X-Heim-Signature: eyJhbGciOiJFUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZyJ9..TXNHbogZZI95lkMAbr2iUw`),
+
+      note('tip', `<a href="/backend/#signing">The backend guide</a> has the signing half in Kotlin, Node,
+      Python and Go, and a set of vectors that proves a signer agrees with what the SDK accepts.`),
+
+      html(`<h3>Rotating a key</h3>
+      <p>Apps update slowly, so a key is trusted <em>before</em> it signs. Activating first would sign
+      every screen with a key the apps in people&rsquo;s pockets have never heard of, and every one of
+      them would refuse every screen at once.</p>
+      <ol class="mb-4 ml-5 list-decimal space-y-1">
+        <li><strong>Prepare</strong> the next key in the Studio. It signs nothing yet.</li>
+        <li><strong>Ship an app release</strong> whose <code>trustedSigningKeys</code> holds both.</li>
+        <li><strong>Activate</strong> it, once that release is what people are running. The Studio
+        immediately rewrites every copy in the bucket under the new key.</li>
+        <li><strong>Drop the old key</strong> from the app in a later release, when installations on the
+        previous one no longer matter.</li>
+      </ol>`),
+
+      html(`<h3>When verification fails</h3>
+      <p>Failing closed means the screen is not rendered. The SDK says which check failed, because the
+      answers are different things to fix:</p>`),
+
+      table(['The error names', 'What it usually is'], [
+        ['the screen is not signed', 'Signing is off on the server, or a proxy dropped the header'],
+        ['it was signed with key …, which this app does not trust', 'A rotation activated before the app release that trusts the new key'],
+        ['the signature does not match the screen&rsquo;s content', 'Something re-serialised or rewrote the body after it was signed'],
+        ['only ES256 signatures are accepted', 'A signer using DER, HMAC, or another algorithm']
+      ]),
+
+      note('warning', `A cached copy that fails is deleted rather than shown, so a device that cannot reach
+      a working server falls through to the emergency bundle instead of rendering something unverifiable.`),
+
+      html(`<h3>The HMAC scheme this replaces</h3>
+      <p><code>publicKey</code> is a shared HMAC secret, and the name was always wrong: the secret that
+      checks a signature there is the secret that makes one. It has to be in the app to be checked in the
+      app, so anybody who pulls it out of an APK can sign screens every installation accepts. It still
+      works, for apps already configured with it, and it cannot be combined with
+      <code>trustedSigningKeys</code>.</p>
+      <p>Moving across is two releases: ship one that trusts the new public key while the server still
+      sends the old header, then switch the server over.</p>`)
     ]
   },
   {
@@ -993,7 +1128,8 @@ HeimScreen(screenId = "checkout", onAction = {}, repository = repository)`),
         ['<code>allowCleartextHosts</code>', 'A payload naming an <code>http://</code> URL — a screen, a form endpoint, an image — and having the SDK fetch it, token and all, over a network anyone on the path can read. Empty by default, so cleartext is refused unless you named the host.'],
         ['<code>HeimUrlPolicy</code>', '<code>intent://</code> reaching unexported Android components; <code>file://</code> and <code>content://</code> disclosing local storage; <code>javascript:</code> running in whatever renders it. It is an <strong>allow-list</strong> — a deny-list always misses the next scheme.'],
         ['Payload guard', 'A deeply nested or oversized payload exhausting the parser. On Kotlin/Native a stack overflow is an uncatchable SIGSEGV, so the depth is checked by scanning the bytes <em>before</em> parsing begins.'],
-        ['Signature verification', 'A tampered payload — including one read back from a cache an attacker wrote on a rooted device.'],
+        ['<code>trustedSigningKeys</code>', 'A screen nobody on your side produced, or one changed after you produced it — including a copy read back from a cache an attacker wrote on a rooted device. See <a href="#signing">Signed screens</a>.'],
+        ['<code>publicScreenHosts</code>', 'A session token reaching a bucket or CDN that has no business holding one: a host listed there is read with no credentials at all.'],
         ['Circuit breaker', 'A client fleet hammering a backend that is already down.']
       ]),
       note('security', `Image URLs are restricted to <code>https</code> and <code>data</code>. A payload cannot

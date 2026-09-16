@@ -105,3 +105,17 @@ jobs:
 
       - name: Go
         run: cd backend/examples/go && go run ./runcorpus
+
+      # The signing guide makes the same kind of promise -- these signers agree with what the SDK
+      # accepts -- and the vectors are what decides it. A signer that drifts produces screens every
+      # device refuses, which is the one failure that cannot be fixed from the server afterwards.
+      - name: Signing, Node
+        run: cd backend/examples/node && node check-signing.mjs
+
+      - name: Signing, Python
+        run: |
+          python3 -m pip install --quiet cryptography
+          cd backend/examples/python && python3 check_signing.py
+
+      - name: Signing, Go
+        run: cd backend/examples/go && go run ./checksigning

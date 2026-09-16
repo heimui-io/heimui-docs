@@ -1,0 +1,118 @@
+{
+  "description": "ES256 conformance vectors for HeimUI screen signatures. The keys below exist only for these tests: never trust them in an app and never sign anything real with them.",
+  "algorithm": "ES256",
+  "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEycPvBH1ujmwVW0EPVa64Nz9OsLLU\niuIWh3GVysbHc/MRa0IY+TqqF/9tWbxvKDBPmsU5/kGFGQL4JD63k8LFsw==\n-----END PUBLIC KEY-----",
+  "privateKeyPem": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgnWORpfQMer5MHvV2\nrWVGkxL3SDW/pqgG4GGbZBGe2fihRANCAATJw+8EfW6ObBVbQQ9Vrrg3P06wstSK\n4haHcZXKxsdz8xFrQhj5OqoX/21ZvG8oME+axTn+QYUZAvgkPreTwsWz\n-----END PRIVATE KEY-----",
+  "keyId": "AQmQXgHRJzElWKBGnUWOhpqg4m_nF0IAe-KvaAgUaew",
+  "cases": [
+    {
+      "name": "header: detached signature over the exact response bytes",
+      "delivery": "header",
+      "body": "{\"id\":\"login\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}",
+      "signature": "eyJhbGciOiJFUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZzRtX25GMElBZS1LdmFBZ1VhZXcifQ..VcrWe59rHZ653al28Mq6k8fcP7WHcZeyIUT3p1X4AwL50pC4McagYnXsdIyBX5lDuKy-OeMHla1fbwH14vmqOQ",
+      "valid": true
+    },
+    {
+      "name": "envelope: signed copy for a public bucket",
+      "delivery": "envelope",
+      "body": "{\"protected\":\"eyJhbGciOiJFUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZzRtX25GMElBZS1LdmFBZ1VhZXcifQ\",\"payload\":\"eyJpZCI6ImxvZ2luIiwicm9vdCI6eyJ0eXBlIjoiY29udGFpbmVyIiwiaWQiOiJpbmljaW9fc2VzacOzbiJ9fQ\",\"signature\":\"bPZ4yK6_V9lEuYRHS8e2EjOMH3ZWf3n3xGR3usU5dU_BF5S7t80ZpZFbH57KIPxMLk3GoWCl5KkkAosu1O1n5Q\"}",
+      "valid": true,
+      "payload": "{\"id\":\"login\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}"
+    },
+    {
+      "name": "header: one byte of the body changed",
+      "delivery": "header",
+      "body": "{\"id\":\"lodin\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}",
+      "signature": "eyJhbGciOiJFUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZzRtX25GMElBZS1LdmFBZ1VhZXcifQ..VcrWe59rHZ653al28Mq6k8fcP7WHcZeyIUT3p1X4AwL50pC4McagYnXsdIyBX5lDuKy-OeMHla1fbwH14vmqOQ",
+      "valid": false
+    },
+    {
+      "name": "header: trailing newline added to the body",
+      "delivery": "header",
+      "body": "{\"id\":\"login\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}\n",
+      "signature": "eyJhbGciOiJFUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZzRtX25GMElBZS1LdmFBZ1VhZXcifQ..VcrWe59rHZ653al28Mq6k8fcP7WHcZeyIUT3p1X4AwL50pC4McagYnXsdIyBX5lDuKy-OeMHla1fbwH14vmqOQ",
+      "valid": false
+    },
+    {
+      "name": "header: kid names a key the app does not trust",
+      "delivery": "header",
+      "body": "{\"id\":\"login\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}",
+      "signature": "eyJhbGciOiJFUzI1NiIsImtpZCI6InpLSTcxQU1zd0FCaGljYmZSeV9veU41SWZzb25WeHd3SDZfWThDaWo4enMifQ..fOCh8p72UFNIoL4SL7pqm18bLSe73ILvEOp56vJwNyyyiFuwplbk5D-3RvHU5e3vgX3cRsDR5yt-nuZgcqsx3w",
+      "valid": false
+    },
+    {
+      "name": "header: kid names the trusted key, signed by another key",
+      "delivery": "header",
+      "body": "{\"id\":\"login\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}",
+      "signature": "eyJhbGciOiJFUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZzRtX25GMElBZS1LdmFBZ1VhZXcifQ..QucyRdYigx210Oe3Aqv5UQ7agq76ewRom6QcBUrr49NnIX6Xwb74WhdwarvHJXDsDf0l92tZcG8AvNFJOJW4iQ",
+      "valid": false
+    },
+    {
+      "name": "header: no kid",
+      "delivery": "header",
+      "body": "{\"id\":\"login\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}",
+      "signature": "eyJhbGciOiJFUzI1NiJ9..zbHinLpD1KtiCdDlTyZxBhRB9etcoNteXXAS4HB6jk9WmmBTsCcnmobbdAezDbmWUwUdTP6mK-KaPRHRrG4gdQ",
+      "valid": false
+    },
+    {
+      "name": "header: alg is not ES256",
+      "delivery": "header",
+      "body": "{\"id\":\"login\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}",
+      "signature": "eyJhbGciOiJIUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZzRtX25GMElBZS1LdmFBZ1VhZXcifQ..VcrWe59rHZ653al28Mq6k8fcP7WHcZeyIUT3p1X4AwL50pC4McagYnXsdIyBX5lDuKy-OeMHla1fbwH14vmqOQ",
+      "valid": false
+    },
+    {
+      "name": "header: alg none with an empty signature",
+      "delivery": "header",
+      "body": "{\"id\":\"login\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}",
+      "signature": "eyJhbGciOiJub25lIiwia2lkIjoiQVFtUVhnSFJKekVsV0tCR25VV09ocHFnNG1fbkYwSUFlLUt2YUFnVWFldyJ9..",
+      "valid": false
+    },
+    {
+      "name": "header: a crit parameter the verifier does not understand",
+      "delivery": "header",
+      "body": "{\"id\":\"login\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}",
+      "signature": "eyJhbGciOiJFUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZzRtX25GMElBZS1LdmFBZ1VhZXciLCJjcml0IjpbImV4cCJdLCJleHAiOjF9..TXNHbogZZI95lkMAbr2iUwN1e-mBDKjYkrUVrwW9ij2Ulw3bEiq5BYnb5OJJ2QIHgFRwMcMqcvylMEB-GZePNg",
+      "valid": false
+    },
+    {
+      "name": "header: signature DER-encoded instead of raw r||s",
+      "delivery": "header",
+      "body": "{\"id\":\"login\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}",
+      "signature": "eyJhbGciOiJFUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZzRtX25GMElBZS1LdmFBZ1VhZXcifQ..MEQCIHI0LGZSphc_dqfJaag7r6KxCtTWamVSUK4THqY-QxaPAiBBsd7ayOMMXDIhuD2ojeMhBfS8ugmW1_RINV79thyNNQ",
+      "valid": false
+    },
+    {
+      "name": "header: attached compact JWS instead of detached",
+      "delivery": "header",
+      "body": "{\"id\":\"login\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}",
+      "signature": "eyJhbGciOiJFUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZzRtX25GMElBZS1LdmFBZ1VhZXcifQ.eyJpZCI6ImxvZ2luIiwicm9vdCI6eyJ0eXBlIjoiY29udGFpbmVyIiwiaWQiOiJpbmljaW9fc2VzacOzbiJ9fQ.VcrWe59rHZ653al28Mq6k8fcP7WHcZeyIUT3p1X4AwL50pC4McagYnXsdIyBX5lDuKy-OeMHla1fbwH14vmqOQ",
+      "valid": false
+    },
+    {
+      "name": "header: signature missing",
+      "delivery": "header",
+      "body": "{\"id\":\"login\",\"root\":{\"type\":\"container\",\"id\":\"inicio_sesión\"}}",
+      "signature": null,
+      "valid": false
+    },
+    {
+      "name": "envelope: payload changed after signing",
+      "delivery": "envelope",
+      "body": "{\"protected\":\"eyJhbGciOiJFUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZzRtX25GMElBZS1LdmFBZ1VhZXcifQ\",\"payload\":\"eyJpZCI6ImxvZGluIiwicm9vdCI6eyJ0eXBlIjoiY29udGFpbmVyIiwiaWQiOiJpbmljaW9fc2VzacOzbiJ9fQ\",\"signature\":\"VcrWe59rHZ653al28Mq6k8fcP7WHcZeyIUT3p1X4AwL50pC4McagYnXsdIyBX5lDuKy-OeMHla1fbwH14vmqOQ\"}",
+      "valid": false
+    },
+    {
+      "name": "envelope: signed by a key the app does not trust",
+      "delivery": "envelope",
+      "body": "{\"protected\":\"eyJhbGciOiJFUzI1NiIsImtpZCI6InpLSTcxQU1zd0FCaGljYmZSeV9veU41SWZzb25WeHd3SDZfWThDaWo4enMifQ\",\"payload\":\"eyJpZCI6ImxvZ2luIiwicm9vdCI6eyJ0eXBlIjoiY29udGFpbmVyIiwiaWQiOiJpbmljaW9fc2VzacOzbiJ9fQ\",\"signature\":\"dOTXgWefoNMLmbhpC9ULzgYVDn-bPjk5KOgjy9zM0-cIGqLaaDn3E7YtxTgyJa1Z2hsHDyhzZI_GXM79cyXHvQ\"}",
+      "valid": false
+    },
+    {
+      "name": "envelope: payload is padded base64 rather than base64url",
+      "delivery": "envelope",
+      "body": "{\"protected\":\"eyJhbGciOiJFUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZzRtX25GMElBZS1LdmFBZ1VhZXcifQ\",\"payload\":\"eyJpZCI6ImxvZ2luIiwicm9vdCI6eyJ0eXBlIjoiY29udGFpbmVyIiwiaWQiOiJpbmljaW9fc2VzacOzbiJ9fQ==\",\"signature\":\"cs5TmH6Tf7nv5AOp4QW7aOmARRlthwPmkbHhPfgrNM7lYWBfBZCrAUwim6PEYK5Q4cL_661bwmqj2UXO8CTOhw\"}",
+      "valid": false
+    }
+  ]
+}

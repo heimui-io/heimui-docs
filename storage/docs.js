@@ -27,7 +27,8 @@ const SECTIONS = [
 
       note('note', `Nothing about this changes what a template <em>is</em>. The bytes in the bucket are
       byte for byte what the Studio would have served, so a service can move between the two without a
-      migration, and <a href="/backend/#hydration">hydration</a> is unchanged.`)
+      migration, and <a href="/backend/#hydration">hydration</a> is unchanged. The one exception is the
+      copy a <em>device</em> may read, which is <a href="#sealed-copies">sealed with its signature</a>.`)
     ]
   },
   {
@@ -168,12 +169,31 @@ screens/@release/checkout.json`),
       html(`<p>No header. A screen that is not open answers <code>401</code> with the scheme it wanted,
       rather than a 404 that would leave an integrator guessing.</p>
 
+      <h3>Reading the same screen from the bucket</h3>
+      <p>Same screen, different address: an object has an extension, and the bucket or the CDN in front of
+      it is the host. In the app, the screen id <em>is</em> that URL, and the host goes in
+      <a href="/sdk/#signing"><code>publicScreenHosts</code></a> so it is read with no credentials:</p>`),
+
+      code(SH, `# The Studio                 /screens/@release/ecommerce/login
+# The bucket    https://screens.example.com/public/@release/ecommerce/login.json
+
+# 200 means a device can read it; 403 means it is still private.
+curl -I https://screens.example.com/public/@release/ecommerce/login.json`),
+
+      note('warning', `A <code>403</code> is one of two things, and both are on this page: there is no
+      <strong>public prefix</strong> configured, so the second copy was never written; or the prefix has
+      not been <a href="#permissions">made readable</a>. A screen that is not open is the third: then the
+      object is simply not there.`),
+
+      html(`<p>Copies written before a Studio signed anything are plain, and an app that verifies refuses
+      them. <strong>Resync</strong>, in the storage panel, writes every one of them again.</p>
+
       <h3>How that works in the bucket</h3>
       <p>Not with permissions. <strong>The Studio writes a second copy under a second prefix</strong>, and
       that prefix is the one a person made readable, once, by hand:</p>`),
 
       diagram(`screens/@release/terms.json     ← private. Your service reads this, with a key.
-public/@release/terms.json      ← the same bytes, where a device can read them.`),
+public/@release/terms.json      ← the same screen, sealed, where a device can read it.`),
 
       note('security', `The alternative would be the Studio editing the bucket policy every time somebody
       flips a switch — and a Studio that can rewrite a bucket policy is a Studio that can open the entire
@@ -218,7 +238,8 @@ public/@release/terms.json      ← the same bytes, where a device can read them
         ['Open the environment', 'Written for every screen live on it'],
         ['Close the environment', 'Withdrawn for every screen it had opened'],
         ['Take a screen off the environment', 'Both copies removed'],
-        ['Clear the public prefix', 'Nothing new is written. Copies already out there stay — remove them yourself']
+        ['Clear the public prefix', 'Nothing new is written. Copies already out there stay — remove them yourself'],
+        ['Activate a new signing key', 'Every copy is written again, signed with the new key']
       ]),
 
       note('warning', `That last row is the one to remember. Emptying the field stops the Studio writing
@@ -228,6 +249,75 @@ public/@release/terms.json      ← the same bytes, where a device can read them
       note('note', `Promoting into an open environment is the moment that screen becomes world-readable.
       That is not a reason to avoid it — a terms page is meant to be read — but it is worth being the thing
       somebody thinks about when they click promote, rather than a property of the bucket they inherited.`)
+    ]
+  },
+  {
+    id: 'sealed-copies', title: 'The readable copy is sealed',
+    blocks: [
+      html(`<p>A device reading an object has nothing in between to vouch for it: no service, and no
+      response header of your own — <strong>S3 returns custom metadata only to a reader holding a key,
+      and R2&rsquo;s public URLs and most CDNs will not pass one through at all</strong>. So the
+      signature travels inside the object.</p>
+
+      <p>The copy under the public prefix is the screen wrapped in its signature — a flattened JWS. The
+      SDK opens it and renders what was inside, whether or not that app verifies anything:</p>`),
+
+      code(J, `{
+  "protected": "eyJhbGciOiJFUzI1NiIsImtpZCI6IkFRbVFYZ0hSSnpFbFdLQkduVVdPaHBxZyJ9",
+  "payload": "eyJpZCI6InRlcm1zIiwicm9vdCI6eyJ0eXBlIjoiY29udGFpbmVyIn19",
+  "signature": "TXNHbogZZI95lkMAbr2iUwN1e-mBDKjYkrUVrwW9ij0"
+}`),
+
+      html(`<p><strong>The private copy is untouched.</strong> It is still the template your service reads
+      and hydrates, byte for byte, with its signature beside it as metadata
+      (<code>x-amz-meta-heim-signature</code>) for a service that forwards templates rather than
+      hydrating them.</p>`),
+
+      table(['Object', 'What it holds', 'Who reads it'], [
+        ['<code>screens/@release/terms.json</code>', 'The template, unchanged', 'Your service, with a key'],
+        ['<code>public/@release/terms.json</code>', 'The same screen, sealed with its signature', 'The device, with none']
+      ]),
+
+      html(`<h3>In the app</h3>`),
+
+      code(K, `HeimConfig(
+    baseUrl = "https://api.yourcompany.com/sdui",
+    trustedSigningKeys = setOf(BuildConfig.HEIMUI_STUDIO_KEY),
+    // The bucket or CDN host. Read with no credentials at all, never an Authorization header.
+    publicScreenHosts = setOf("screens.yourcompany.com"),
+)
+
+// The screen id is the URL, because that is where this screen lives.
+HeimScreen(screenId = "https://screens.yourcompany.com/public/@release/terms.json")`),
+
+      note('security', `A host listed in <code>publicScreenHosts</code> is read without credentials on
+      purpose: a bucket has no use for a session token, and a token provider that returns one
+      unconditionally would hand it over. Verification is what makes reading it safe, and it is the whole
+      reason the copy is sealed rather than plain.`),
+
+      html(`<h3>Screens the Studio did not publish</h3>
+      <p>If something else puts screens in that prefix — a pipeline, a script, a repository of static
+      screens — seal them the same way, with a key the app trusts. The reference implementations do it in
+      one call: <a href="/backend/#signing"><code>seal(bytes)</code></a> in Kotlin, Node, Python or Go.</p>
+
+      <h3>When a key is rotated</h3>
+      <p>Every copy in the bucket carries a signature by the key that made it, so activating a new key in
+      the Studio <strong>rewrites all of them</strong> immediately, under the new key. Nothing to run by
+      hand; the count is on the confirmation. Where that key lives and how it is rotated is
+      <a href="/studio/#signing-key">on the Studio page</a>; <a href="/sdk/#signing">rotating a key</a> has
+      the order the steps have to happen in.</p>`),
+
+      html(`<h3>Turning it off</h3>
+      <p><strong>Seal the readable copies</strong>, in the storage panel, is on by default and is what you
+      want while the SDK is what reads these objects — it costs an app nothing, because the SDK opens a
+      sealed screen with or without verification.</p>
+      <p>Turn it off when something that is <em>not</em> the SDK reads them: a script, a web page, a client
+      on another platform. The object then holds the screen and nothing around it, exactly as it did
+      before signing existed. The private copy is never sealed either way.</p>`),
+
+      note('note', `Signing is a choice, not a requirement. An app that lists no keys verifies nothing, and
+      a Studio from before this existed writes plain copies. Everything on this page is what an app with
+      <code>trustedSigningKeys</code> asks for.`)
     ]
   },
   {
@@ -522,7 +612,11 @@ suspend fun template(screenId: String, channel: String = "release"): JsonObject 
         ['<code>SignatureDoesNotMatch</code>',
          'Usually the region, not the key — an endpoint-less config signs for the region you typed'],
         ['<code>NoSuchBucket</code> on a bucket that exists',
-         'Wrong region, or an endpoint that needs path-style. Filling in the endpoint field switches that on']
+         'Wrong region, or an endpoint that needs path-style. Filling in the endpoint field switches that on'],
+        ['The device refuses the screen: <em>signed with a key this app does not trust</em>',
+         'A key rotation activated before the app release that trusts the new key. See <a href="/sdk/#signing">rotating a key</a>'],
+        ['The device refuses the screen: <em>the screen is not signed</em>',
+         'A copy written by something other than the Studio, unsealed. Either <a href="#sealed-copies">seal it</a> or resync']
       ]),
 
       html(`<h3>The mirror never blocks publishing</h3>

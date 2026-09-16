@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Serving HeimUI templates from object storage</title>
-<meta name="description" content="Mirror published HeimUI screens into S3, Cloudflare R2, DigitalOcean Spaces or MinIO, so your service reads templates without the Studio in the request path: the object layout, the two IAM policies, and how to read one.">
+<title>Running the HeimUI Studio</title>
+<meta name="description" content="The editor that stores HeimUI screens and serves them to apps: drafts and releases, environments and read keys, the signing key and its rotation, access, backups and the API.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,9 +72,9 @@ tailwind.config = {
 
     <nav class="hidden items-center gap-0.5 rounded-lg border border-edge bg-surface p-0.5 sm:flex" aria-label="Documentation sections">
       <a href="/sdk/#introduction" class="rounded-md px-3 py-1.5 text-sm font-medium transition text-muted hover:text-ink">Mobile SDK</a>
-      <a href="/studio/#run" class="rounded-md px-3 py-1.5 text-sm font-medium transition text-muted hover:text-ink">Studio</a>
+      <a href="/studio/#run" aria-current="page" class="rounded-md px-3 py-1.5 text-sm font-medium transition bg-cyan/15 text-cyan">Studio</a>
       <a href="/backend/#hydration" class="rounded-md px-3 py-1.5 text-sm font-medium transition text-muted hover:text-ink">Backend</a>
-      <a href="/storage/#why" aria-current="page" class="rounded-md px-3 py-1.5 text-sm font-medium transition bg-cyan/15 text-cyan">Storage</a>
+      <a href="/storage/#why" class="rounded-md px-3 py-1.5 text-sm font-medium transition text-muted hover:text-ink">Storage</a>
     </nav>
 
     <div class="relative ml-auto w-full max-w-xs">
@@ -101,9 +101,9 @@ tailwind.config = {
     <div id="content" class="prose-heim mx-auto max-w-3xl"></div>
 
     <footer class="mx-auto mt-24 max-w-3xl border-t border-edge pt-8 text-sm text-muted">
-      <p class="mb-2">Serving templates from your own object storage — for whoever operates the Studio, and whoever reads what it publishes.</p>
-      <p>Optional. The Studio serves published screens itself, and keeps doing so while this is switched on. Turn it on when the Studio should not be in the request path of a live app.</p>
-      <p class="mt-2">The four reading examples were run against a real bucket, not written by hand: Python, Node and Go each fetched a published template, and the Kotlin one was compiled. If one of them does not work for you, that is a bug &mdash; please open an issue.</p>
+      <p class="mb-2">The Studio is where screens are written, published and signed — for whoever runs it, which in a self-hosted product is you.</p>
+      <p>It runs as one container against a SQLite file on your disk. Nothing here is a hosted service, and no screen, key or credential leaves the machine you started it on.</p>
+      <p class="mt-2">Every route on this page is the one the server actually exposes; every setting is one the editor actually shows. If a command here does not work as written, that is a bug &mdash; please open an issue.</p>
     </footer>
   </main>
 

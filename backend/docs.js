@@ -351,6 +351,180 @@ return result.Document`)
   ]
 },
 {
+  group: 'Signing',
+  items: [
+  {
+    id: 'signing', title: 'Signing what you serve',
+    blocks: [
+      html(`<p>An app with <a href="/sdk/#signing">signature verification</a> on renders a screen only
+      if it was signed by a key that app trusts. One rule decides who signs:
+      <strong>whoever produces the bytes the device receives.</strong></p>
+
+      <p><strong>None of this is required.</strong> Verification is off unless an app asks for it, so a
+      service that signs nothing serves screens exactly as it does today. This page is for the app that
+      does ask — and then hydration is what makes signing yours rather than the Studio&rsquo;s.</p>
+
+      <p>That is you, as soon as you hydrate. A signature covers exact bytes, and filling in one
+      placeholder changes them — so the Studio&rsquo;s signature stops matching the moment your service
+      does its job. Nobody but you can vouch for what came out.</p>`),
+
+      table(['What your service does', 'Who signs'], [
+        ['Reads a template and <strong>hydrates</strong> it', '<strong>You.</strong> The bytes are yours now'],
+        ['Composes a screen itself', '<strong>You.</strong> Same reason'],
+        ['Passes a template through <strong>byte for byte</strong>', 'Whoever signed it. Forward the signature you were given'],
+        ['Answers a <code>submit_form</code> with a screen', '<strong>You.</strong> A response screen is a screen'],
+        ['Serves no screens — the device reads them from a bucket', 'The Studio, when it writes the copy']
+      ]),
+
+      note('security', `The private key stays in your service. The app needs only the public half, which
+      cannot sign; publishing it is harmless, and shipping the private one in an app is not something a
+      later release can undo. Keep it in a secret manager, mounted or in an environment variable, and out
+      of your repository.`),
+
+      html(`<h3>The format</h3>
+      <p>JWS (RFC 7515). Any JOSE library speaks it, and the SDK accepts exactly one profile:</p>`),
+
+      table(['Part', 'Value'], [
+        ['Protected header', '<code>{"alg":"ES256","kid":"&lt;thumbprint&gt;"}</code>, base64url'],
+        ['<code>kid</code>', 'The RFC 7638 JWK thumbprint of your public key — computed, never chosen'],
+        ['Signing input', '<code>&lt;protected&gt;.&lt;base64url of the body bytes&gt;</code>, as ASCII'],
+        ['Signature', 'ECDSA P-256 with SHA-256, as raw <code>r || s</code> (64 bytes), base64url. <strong>Not DER</strong>'],
+        ['Header sent', '<code>X-Heim-Signature: &lt;protected&gt;..&lt;signature&gt;</code> — detached, so the body is untouched'],
+        ['In a bucket', '<code>{"protected": …, "payload": …, "signature": …}</code>, the screen base64url inside']
+      ]),
+
+      html(`<h3>Making a key</h3>`),
+
+      code(SH, `# A P-256 key, in the PKCS#8 form every library reads.
+openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out heimui-signing-key.pem
+chmod 600 heimui-signing-key.pem
+
+# The public half. This is what goes into the app.
+openssl pkey -in heimui-signing-key.pem -pubout`),
+
+      note('note', `ECDSA on P-256 rather than Ed25519, which is the more fashionable answer. Android
+      verifies Ed25519 only from API 33, and on iOS it lives in CryptoKit, which Kotlin cannot call.
+      P-256 is verified by the platform itself everywhere the SDK runs, back to API 24.`),
+
+      html(`<h3>Signing a response</h3>
+      <p>Serialise once, sign those bytes, send those bytes. The reference files are single files with the
+      verification half included, so your tests can check what you produce:</p>`),
+
+      table(['Language', 'File', 'Runner', 'Dependencies'], [
+        ['Kotlin (JVM)', '<a href="/backend/examples/kotlin/HeimScreenSigner.kt">HeimScreenSigner.kt</a>', '—', 'None — the JDK'],
+        ['Node (ESM)', '<a href="/backend/examples/node/heimui-signing.mjs">heimui-signing.mjs</a>', '<a href="/backend/examples/node/check-signing.mjs">check-signing.mjs</a>', 'None'],
+        ['Python 3.9+', '<a href="/backend/examples/python/heimui_signing.py">heimui_signing.py</a>', '<a href="/backend/examples/python/check_signing.py">check_signing.py</a>', '<code>cryptography</code>'],
+        ['Go 1.21+', '<a href="/backend/examples/go/signing/signing.go">signing/signing.go</a>', '<a href="/backend/examples/go/checksigning/main.go">checksigning/main.go</a>', 'None — standard library']
+      ]),
+
+      tabs(
+        code(K, `val signer = ScreenSigner.fromPem(File(System.getenv("HEIMUI_SIGNING_KEY_FILE")).readText())
+
+// Hydration runs first: it is what makes these bytes yours.
+val screen = HeimHydrationEngine.hydrate(template, data)
+val body = screen.toString().toByteArray(Charsets.UTF_8)
+
+call.response.header("X-Heim-Signature", signer.signDetached(body))
+call.respondBytes(body, ContentType.Application.Json)`),
+        code(JS, `import { createSigner } from './heimui-signing.mjs';
+
+const signer = createSigner(process.env.HEIMUI_SIGNING_KEY);
+
+app.get('/sdui/:screen', async (req, res) => {
+  const screen = hydrate(await templates.fetch(req.params.screen), await data(req));
+  const body = Buffer.from(JSON.stringify(screen), 'utf8');
+
+  res.set('X-Heim-Signature', signer.signDetached(body));
+  res.type('application/json').send(body);   // the bytes that were signed, not the object
+});`),
+        code(P, `from heimui_signing import ScreenSigner
+
+signer = ScreenSigner(open(os.environ["HEIMUI_SIGNING_KEY_FILE"], "rb").read())
+
+@app.get("/sdui/{screen_id}")
+def screen(screen_id: str):
+    document = hydrate(templates.fetch(screen_id), payload())
+    body = json.dumps(document, separators=(",", ":")).encode("utf-8")
+
+    return Response(body, media_type="application/json",
+                    headers={"X-Heim-Signature": signer.sign_detached(body)})`),
+        code(GO, `signer, err := signing.NewSigner(key)
+if err != nil {
+    return err
+}
+
+body, err := json.Marshal(hydration.Hydrate(template, data))
+if err != nil {
+    return err
+}
+header, err := signer.SignDetached(body)
+if err != nil {
+    return err
+}
+w.Header().Set("X-Heim-Signature", header)
+w.Header().Set("Content-Type", "application/json")
+w.Write(body)`)
+      ),
+
+      html(`<h3>Passing a template through unchanged</h3>
+      <p>If your service hands over exactly what it was given, you do not need a key at all — forward the
+      signature that came with it. Reading from the Studio, that is the <code>X-Heim-Signature</code>
+      response header. Reading from a bucket, it is the object&rsquo;s <code>heim-signature</code>
+      metadata, which S3 returns as <code>x-amz-meta-heim-signature</code>.</p>
+      <p>Unchanged means unchanged. Re-serialising JSON counts as changing it, even when the document is
+      identical: key order, spacing and escaping are all part of what was signed.</p>`),
+
+      html(`<h3>What gets this wrong</h3>`),
+
+      table(['Mistake', 'What the device reports'], [
+        ['Signing, then letting the framework serialise the object again', 'the signature does not match'],
+        ['A framework that pretty-prints JSON on the way out', 'the signature does not match'],
+        ['Signing the template instead of the hydrated result', 'the signature does not match'],
+        ['DER signatures — the default of most libraries', 'only ES256 signatures are accepted'],
+        ['Padded base64, or base64 rather than base64url', 'the signature is not base64url'],
+        ['A key per replica, generated at startup', 'signed with a key this app does not trust, on some requests only'],
+        ['Leaving <code>submit_form</code> responses unsigned', 'the screen after a submission is refused']
+      ]),
+
+      note('tip', `Signing is the last thing that happens to a response, and the first thing to check when
+      an app refuses one. Log the key id you sign with at startup, and compare it with the one in the
+      app&rsquo;s configuration.`)
+    ]
+  },
+  {
+    id: 'signing-conformance', title: 'Proving your signer',
+    blocks: [
+      html(`<p>The same shape as the hydration corpus, for the same reason: a signer that agrees with its
+      own idea of the format ships screens every device refuses, and finds out from users.</p>
+
+      <p><a href="/backend/signing/es256-vectors.json">es256-vectors.json</a> holds a key pair that exists
+      only for tests, and sixteen cases the SDK accepts or refuses — a tampered body, a key that is not
+      trusted, <code>alg: none</code>, DER instead of raw, a padded payload, a sealed copy edited after
+      signing. Every implementation here runs them, and so does the SDK, on Android and on iOS.</p>`),
+
+      code(SH, `cd backend/examples/node && node check-signing.mjs
+cd backend/examples/python && python3 check_signing.py
+cd backend/examples/go && go run ./checksigning`),
+
+      code(SH, `  ok   the key id is the RFC 7638 thumbprint
+  ok   accepts header: detached signature over the exact response bytes
+  ok   accepts envelope: signed copy for a public bucket
+  ok   refuses header: one byte of the body changed
+  ok   refuses header: signature DER-encoded instead of raw r||s
+  …
+21/21 checks pass.`),
+
+      note('warning', `The keys in that file are published. They are for tests, and only for tests:
+      anything signed with them is signed with a key anybody can read.`),
+
+      note('note', `Two checks, not one. The vectors prove your verifier refuses what the SDK refuses;
+      signing a screen and putting it back through the same verifier proves what you produce is accepted.
+      A signer that only does the first can still be wrong in the one direction that matters.`)
+    ]
+  }
+  ]
+},
+{
   group: 'Proving it',
   items: [
   {
