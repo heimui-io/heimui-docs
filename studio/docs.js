@@ -52,6 +52,10 @@ after    app ──▶ studio.yourcompany.com/screens/hub/hub_screen.json`),
   {
     id: 'drafts', title: 'Drafts, releases and rollback',
     blocks: [
+      figure('/studio/screenshots/editor-releases.png',
+        'The Releases view showing three stages side by side: Draft with four saves and a Publish to Develop button, Develop with nothing yet, and Release marked PRODUCTION with a Promote button.',
+        'The same ladder this section describes, as the Studio draws it. Nothing reaches production without crossing it.'),
+
       html(`<p>Saving is not publishing, and that distinction is the whole storage model.</p>`),
 
       table(['What you do', 'What it creates', 'What a device sees'], [
@@ -88,6 +92,10 @@ after    app ──▶ studio.yourcompany.com/screens/hub/hub_screen.json`),
   {
     id: 'editor', title: 'Three views of one document',
     blocks: [
+      figure('/studio/screenshots/editor-design.png',
+        'The Studio editor: a screen list on the left, a phone canvas in the middle rendering a catalogue screen, and an inspector on the right showing screen settings, data binding and structure diagnostics.',
+        'The Design view. Screens on the left, the device canvas in the middle, the inspector on the right &mdash; and the diagnostics panel beneath it, which is where most of the value is.'),
+
       html(`<p><code>http://localhost:8080/editor/</code> once the server is up; <code>/</code> redirects
       there. The toolbar switches between three views of the same document:</p>`),
 
@@ -115,6 +123,10 @@ after    app ──▶ studio.yourcompany.com/screens/hub/hub_screen.json`),
   {
     id: 'diagnostics', title: 'What the validator cannot catch',
     blocks: [
+      figure('/studio/screenshots/editor-data.png',
+        'The Data view: a contract panel listing store.name, store.tagline and a featured list of three items with id, name, price and an optional badge, next to a warning about an expression with nothing behind it.',
+        'The Data view. The contract holds the <em>shape</em> of the response and one sample value per field &mdash; never your production data &mdash; and the panel above it names a binding that would render as literal braces on a device.'),
+
       html(`<p>The <strong>Diagnostics</strong> panel flags five things that are perfectly valid JSON and
       still wrong on a device. None of them blocks a save — most are normal states halfway through
       building a screen.</p>`),

@@ -20,6 +20,8 @@ const tabs = (...blocks) => ({ kind: 'tabs', blocks });
 const note = (variant, body) => ({ kind: 'note', variant, body });
 const table = (head, rows) => ({ kind: 'table', head, rows });
 const html = (body) => ({ kind: 'html', body });
+/** A screenshot with a caption. `src` is site-absolute so it resolves from any page. */
+const figure = (src, alt, caption) => ({ kind: 'figure', src, alt, caption });
 
 /** Renders SECTIONS. Called by the content file, which declares it. */
 function renderDocs() {
@@ -50,6 +52,14 @@ function renderDocs() {
   function renderBlock(b) {
     switch (b.kind) {
       case 'html': return b.body;
+      // Lazy because these sit far down long pages. `alt` is a required argument rather than an
+      // optional one, so a screenshot cannot ship unreadable to someone using a screen reader.
+      case 'figure':
+        return `<figure class="my-6">
+          <img src="${b.src}" alt="${esc(b.alt)}" loading="lazy" decoding="async"
+               class="w-full rounded-xl border border-edge shadow-2xl shadow-black/40" />
+          <figcaption class="mt-2.5 text-center text-xs leading-relaxed text-muted">${b.caption}</figcaption>
+        </figure>`;
       case 'code': return renderCode(b.lang, b.src);
       case 'tabs': {
         const gid = `tabs-${blockSeq++}`;
