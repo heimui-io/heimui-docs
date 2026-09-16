@@ -237,6 +237,37 @@ after    app ──▶ studio.yourcompany.com/screens/hub/hub_screen.json`),
     ]
   },
   {
+    id: 'draft-preview', title: 'Previewing a draft on a device',
+    blocks: [
+      html(`<p>A canvas is not a phone. The fonts are the phone's, the icons are the app's, and a custom
+      component is whatever that app registered under that name — none of which an editor can show you.
+      So the draft can be read from a device directly, before it is published to anybody.</p>`),
+
+      code(SH, `curl -H "Authorization: Bearer heimk_…" \\
+  https://studio.example.com/screens/@draft/checkout`),
+
+      html(`<p><strong>A key is the whole of the access control.</strong> This route is never open, whatever
+      any environment says: an environment decides who reads what was <em>published</em>, and a draft is
+      precisely what was not. Without a key it answers <code>401</code> to everybody, including you.</p>`),
+
+      table(['', ''], [
+        ['<strong>Where the key comes from</strong>', '<strong>Settings &rarr; Environments &rarr; Draft preview</strong>, which also shows the route to copy. The secret appears once'],
+        ['<strong>What that key opens</strong>', 'Drafts, and nothing else. It does not read an environment, and an environment&rsquo;s key does not read drafts'],
+        ['<strong>What it serves</strong>', 'The working draft as it is right now — the save you just made, not the release'],
+        ['<strong>Caching</strong>', '<code>no-store</code>. A draft changes while somebody types, and a preview a minute behind is worse than none']
+      ]),
+
+      note('security', `Keep it out of a release build. It reads unpublished work, so a preview key in an
+      app on a shop is a copy of everything your team is still working on. Put it in a debug build, and
+      revoke it when whoever was testing no longer needs it.`),
+
+      html(`<p>It is signed like everything else this Studio serves, so an app with
+      <a href="/sdk/#signing">signature verification</a> on renders the preview rather than refusing it.
+      Nothing else about the app changes: the screen id is that URL, and the key travels in the same
+      <code>Authorization</code> header your token provider already returns.</p>`)
+    ]
+  },
+  {
     id: 'point-an-app', title: 'Pointing an app at it',
     blocks: [
       html(`<p>One setting in the app: the base URL the SDK resolves screen ids against.</p>`),
