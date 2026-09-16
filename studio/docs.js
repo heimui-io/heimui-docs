@@ -28,6 +28,22 @@ after    app ──▶ studio.yourcompany.com/screens/hub/hub_screen.json`),
       schema before they are stored, so a screen that would render broken on a device cannot be saved
       in the first place.</p>`),
 
+      html(`<h3>What a deployment can set</h3>`),
+
+      table(['Variable', 'What it decides', 'Default'], [
+        ['<code>STUDIO_DB</code>', 'Where the database file lives', '<code>studio.db</code> beside the process; <code>/data/studio.db</code> in Docker'],
+        ['<code>STUDIO_PORT</code>', 'The port it serves on', '<code>8080</code>'],
+        ['<code>STUDIO_HOST</code>', 'The interface it binds to', '<code>127.0.0.1</code>. The container sets <code>0.0.0.0</code> and publishes the port on loopback'],
+        ['<code>STUDIO_TOKEN</code>', 'A token every <code>/api</code> call must present', 'unset, which leaves the Studio open — right on a laptop, wrong anywhere else'],
+        ['<code>STUDIO_SEED</code>', '<code>off</code> skips the starter design system and example screen an empty Studio opens on', 'on'],
+        ['<code>STUDIO_SIGNING_KEY</code> · <code>STUDIO_SIGNING_KEY_FILE</code>', 'The key to sign with, instead of the one this Studio generates. See <a href="#signing-key">The signing key</a>', 'generated in <code>signing/</code>'],
+        ['<code>HEIMUI_STORAGE_ACCESS_KEY</code> · <code>HEIMUI_STORAGE_SECRET</code>', 'The bucket credential, when the container holds it rather than the panel. See <a href="/storage/#studio-config">Object storage</a>', 'none — the provider&rsquo;s own credential chain']
+      ]),
+
+      note('note', `An empty Studio seeds itself with a starter design system and one example screen, because
+      a Studio that opens on nothing teaches nothing. It only ever happens into an empty one, and
+      <code>STUDIO_SEED=off</code> skips it for a deployment that provisions its own catalogue.`),
+
       note('note', `The Studio is optional in both directions. An app can read screens from your own
       backend or from <a href="/storage/#why">a bucket</a> and never touch it; and a team that uses it
       to author screens can still serve them from somewhere else.`)
@@ -52,6 +68,12 @@ after    app ──▶ studio.yourcompany.com/screens/hub/hub_screen.json`),
       <p>The <strong>History</strong> tab shows the draft and the releases as two different things.
       Publishing asks what the release is, and that name is what the history shows — the dialog names
       what is being created, what it replaces, and whether the screen's own version should move.</p>`),
+
+      html(`<h3>Getting a draft back</h3>
+      <p>A save overwrites the draft, so the Studio keeps <strong>recovery points</strong> of its own as you
+      work — capped, so they cannot grow without bound. <code>GET /api/snapshots/{id}</code> lists them and
+      <code>GET /api/snapshot/{takenAt}/{id}</code> reads one, and the editor offers them where the history
+      is. They are for the draft only: a release is immutable and needs no recovering.</p>`),
 
       note('tip', `A field appearing, or its rules changing, is a reason to bump the screen version. A
       copy change is not: bumping for one would make every device discard the forms users had half
@@ -177,6 +199,18 @@ after    app ──▶ studio.yourcompany.com/screens/hub/hub_screen.json`),
       it would take a correct <code>Vary</code> in the SDK, in any CDN and in any corporate proxy, and one
       of them getting it wrong serves a canary screen to a stable user.</p>
 
+      <h3>Moving a screen through them</h3>`),
+
+      table(['Action', 'What moves', 'What the release does'], [
+        ['<strong>Publish</strong> to an environment', 'A new release, and that environment&rsquo;s pointer', 'Created'],
+        ['<strong>Promote</strong> to the next', 'Only the pointer — the same release, byte for byte', 'Untouched, so the ETag holds and devices get a <code>304</code>'],
+        ['<strong>Take down</strong>', 'The pointer is removed', 'Survives. Anything reading that environment gets a <code>404</code>, and putting it back is a promotion rather than a rebuild']
+      ]),
+
+      html(`<p>Environments are a list you can add to: a team that wants <code>staging</code> between the two
+      creates it in <strong>Settings &rarr; Environments</strong>, and the order in that list is the order
+      screens travel. Removing one takes down everything it was serving, which the dialog says out loud.</p>
+
       <h3>Who may read one</h3>
       <p>Closed by default. What reads a closed environment is a service, and a service can hold a secret:</p>`),
 
@@ -263,6 +297,14 @@ done`),
         ['<code>GET</code>', '<code>/api/signing</code>', 'The signing keys — public halves only'],
         ['<code>POST</code> / <code>DELETE</code>', '<code>/api/signing/next</code>', 'Prepare, or throw away, the next key'],
         ['<code>POST</code>', '<code>/api/signing/activate</code>', 'Make the prepared key the one that signs'],
+        ['<code>GET</code>', '<code>/api/live/{id}</code>', 'What is live on each environment, and whether it may be read without a key'],
+        ['<code>DELETE</code>', '<code>/api/live/{channel}/{id}</code>', 'Take a screen off one environment. The release survives'],
+        ['<code>PATCH</code>', '<code>/api/live/{channel}/{id}</code>', 'Open or close <em>one screen</em> inside an environment'],
+        ['<code>GET</code> / <code>POST</code>', '<code>/api/channels</code>', 'The environments, and adding one. <code>PATCH</code> opens or closes it; <code>DELETE</code> removes it'],
+        ['<code>GET</code> / <code>POST</code>', '<code>/api/channels/{channel}/keys</code>', 'Read keys for a closed environment. The secret is in the answer to the <code>POST</code> and nowhere else, ever again'],
+        ['<code>GET</code>', '<code>/api/snapshots/{id}</code> · <code>/api/snapshot/{takenAt}/{id}</code>', 'Recovery points for the working draft, and reading one back'],
+        ['<code>POST</code>', '<code>/api/storage/resync</code>', 'Write what every environment is serving to the bucket again, after drift'],
+        ['<code>GET</code>', '<code>/api/schema</code> · <code>/api/session</code>', 'The screen schema the editor validates against, and whether a token is required'],
         ['<code>POST</code>', '<code>/api/prune/{keep}/{id}</code>', 'Drop old releases, keeping the newest and the live one']
       ]),
 
