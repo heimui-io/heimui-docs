@@ -699,6 +699,63 @@ HeimScreen(screenId = "https://screens.yourcompany.com/public/@release/login.jso
   group: 'Actions',
   items: [
   {
+    id: 'overlay', title: 'In-app notifications',
+    blocks: [
+      html(`<p>A banner that appears over whatever the user is looking at is not a component, and the
+      SDK does not model it as one. It is <strong>an ordinary screen drawn on top of another</strong>
+      — authored in the Studio, published to a channel, signed and cached like every other screen. A
+      card, an image, a button, whatever you want it to be.</p>
+      <p>Pass its id as <code>overlayScreenId</code>, and <code>null</code> when there is nothing to
+      show:</p>`),
+
+      code('kotlin', `var notification by remember { mutableStateOf<String?>(null) }
+
+// A push arrives while the app is open. This part is yours: the SDK has no
+// opinion about when a notification is warranted.
+fun onPushReceived(payload: Push) {
+    notification = payload.screenId      // "notifications/order_shipped"
+}
+
+HeimScreen(
+    screenId = "home",
+    onAction = ::handleAction,
+    overlayScreenId = notification,
+    onOverlayDismiss = { notification = null }
+)`),
+
+      html(`<p>The overlay dismisses itself through <code>dismiss_modal</code> — the same action that
+      closes a dialog or a bottom sheet — so a "Close" button in the payload needs nothing special:</p>`),
+
+      code('json', `{ "type": "button", "id": "close", "title": "Close",
+  "actions": [{ "type": "dismiss_modal" }] }`),
+
+      html(`<p>Every other action the overlay dispatches reaches your <code>onAction</code> exactly
+      like the main screen's, so a "View order" button is handled where you already handle
+      navigation.</p>`),
+
+      note('note', `<strong>An overlay is silent while it loads, and silent when it fails.</strong>
+      No skeleton, because a full-size shimmer over a screen the user is working on is worse than
+      nothing; and no error card, because a notification that could not load is not a failure worth
+      interrupting someone to report. It appears when it is ready, or it does not appear.`),
+
+      html(`<h3>Replacing the loading and error states</h3>
+      <p>The built-in failure card says "Unable to load screen" in English and looks like Material,
+      neither of which is right for every app. Both states take a replacement:</p>`),
+
+      code('kotlin', `HeimScreen(
+    screenId = "home",
+    onAction = ::handleAction,
+    errorContent = { message, onRetry ->
+        OurOwnErrorState(text = stringResource(R.string.screen_failed), onRetry = onRetry)
+    },
+    loadingContent = { OurOwnShimmer() }
+)`),
+
+      note('warning', `<code>message</code> is diagnostic text meant for you, not for the person
+      holding the phone — it carries the URL and the HTTP status. Log it; show your own wording.`)
+    ]
+  },
+  {
     id: 'actions', title: 'The action model',
     blocks: [
       html(`<p>Ten action types. Some the SDK performs itself; all of them are forwarded to your
