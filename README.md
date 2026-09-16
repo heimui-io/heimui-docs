@@ -1,6 +1,14 @@
+<p align="center">
+  <img src="https://heimui.io/art/heimui-banner.jpg" alt="HeimUI" width="100%" />
+</p>
+
 # HeimUI documentation
 
 Source of **[heimui.io](https://heimui.io)**.
+
+The brand lives here too, in [`art/`](art/) — this repository is the site, so those files are
+served straight from it and every other repository points at the same URL rather than keeping a
+copy that drifts. Read [`art/BRAND_GUIDELINES.md`](art/BRAND_GUIDELINES.md) before using them.
 
 ## The ecosystem
 
