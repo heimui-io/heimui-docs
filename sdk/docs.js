@@ -426,6 +426,32 @@ HeimScreen(screenId = "https://screens.yourcompany.com/public/@release/login.jso
   {
     id: 'layout', title: 'Layout: padding, weight & frame',
     blocks: [
+      html(`<h3>Placing something vertically on a screen that is mostly empty</h3>
+      <p>This is the one layout rule worth learning before you need it, because the symptom looks
+      like a bug: a component that will not move away from the top no matter what you set.</p>
+      <p>The two properties that sound interchangeable are not:</p>`),
+
+      table(['Axis', 'Property', 'Where'], [
+        ['Horizontal', '<code>content_alignment</code>', 'on a <code>box</code>'],
+        ['<strong>Vertical</strong>', '<strong><code>arrangement</code></strong>', 'on a <code>container</code>']
+      ]),
+
+      html(`<p>A <code>box</code> fills the width but <strong>not</strong> the height, so it ends up exactly as
+      tall as what is inside it. <code>TOP</code> and <code>BOTTOM</code> then have no room to mean anything —
+      the box already ends where its content ends. They move things only when something inside has given the
+      box height, a list filling the screen being the usual case.</p>
+      <p>A <code>container</code> is different, and only when you ask it to be: with the default
+      <code>PACKED</code> arrangement it wraps its content like the box, but <strong>any other value makes it
+      take the height of the viewport</strong> and distribute what is inside across it. That is the mechanism,
+      and it is why the same screen sits at the top or in the middle depending on one word:</p>`),
+
+      code(J, `{ "type": "container", "direction": "VERTICAL", "arrangement": "CENTER",
+  "children": [ { "type": "card", "id": "banner" } ] }`),
+
+      note('tip', `<code>PACKED</code> puts it at the top, <code>CENTER</code> in the middle,
+      <code>END</code> at the bottom. Nothing else changes — no height, no spacers, no weights. If you
+      reached for weighted spacers to centre something and they did nothing, this is why: under
+      <code>PACKED</code> there is no spare height for them to share out.`),
       html(`<h3>Padding takes a number or an object</h3>`),
       code(J, `"padding": 16
 "padding": { "horizontal": 16, "vertical": 24 }
@@ -752,7 +778,12 @@ HeimScreen(
 )`),
 
       note('warning', `<code>message</code> is diagnostic text meant for you, not for the person
-      holding the phone — it carries the URL and the HTTP status. Log it; show your own wording.`)
+      holding the phone — it carries the URL and the HTTP status. Log it; show your own wording.`),
+
+      html(`<p>Where the overlay appears is the payload's decision, not the SDK's — top, middle or bottom,
+      changed in the Studio without touching the app. It is the same rule as any other short screen, and it
+      catches people out, so it is written up under
+      <a href="#layout">Layout</a>.</p>`)
     ]
   },
   {
