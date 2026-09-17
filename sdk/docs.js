@@ -725,6 +725,56 @@ HeimScreen(screenId = "https://screens.yourcompany.com/public/@release/login.jso
   group: 'Actions',
   items: [
   {
+    id: 'error-screens', title: 'Errors are screens too',
+    blocks: [
+      html(`<p>A screen the reader should not see is still a screen. "Your session expired", "this is
+      not available on your plan", "that order is gone" — your backend knows exactly what to show, and
+      it should be able to show it without you writing it twice in native code for each platform.</p>
+      <p><strong>Answer with a 4xx and a screen in the body.</strong> The SDK renders it instead of the
+      one that was asked for. The status stays honest — your dashboards, caches and proxies all keep
+      working — and the reader gets a page you designed in the Studio:</p>`),
+
+      code('http', `HTTP/1.1 403 Forbidden
+Content-Type: application/json
+
+{ "id": "suspended", "root": { "type": "container", "children": [ ... ] } }`),
+
+      table(['Status', 'What the SDK does with a screen in the body'], [
+        ['<strong>2xx</strong>', 'Renders it and caches it. The ordinary path'],
+        ['<strong>4xx</strong>', 'Renders it. <strong>Never caches it</strong>'],
+        ['<strong>5xx</strong>', 'Ignores it, and falls back to cache or the emergency bundle']
+      ]),
+
+      html(`<p>The 5xx line is deliberate. A 4xx is the server stating something true about the request;
+      a 5xx is the server saying it does not know what state it is in, and a body from something that
+      broken describes nothing — more often it is a proxy's HTML that never reached your application.</p>`),
+
+      note('warning', `<strong>A 4xx screen is never cached and never replaces the cached copy.</strong>
+      It describes the state of the world right now, not the contents of that screen. Cached, a
+      reinstated account would keep reading "suspended" until a TTL expired — and offline, forever.`),
+
+      html(`<h3>Reacting to it</h3>
+      <p>Rendering is not always enough: a <code>401</code> usually means the session is gone and the
+      app should navigate somewhere the payload knows nothing about. The status is carried through, as
+      a number rather than a sentence to match against:</p>`),
+
+      code('kotlin', `HeimTelemetryObserver { event ->
+    if (event is HeimTelemetryEvent.ScreenRefused && event.statusCode == 401) {
+        session.signOut()
+    }
+}`),
+
+      note('security', `Screens from an error response are verified exactly like any other. A 4xx is
+      the response an intermediary can most easily put in front of an app — a captive portal, a proxy,
+      a corporate middlebox — so a screen that fails verification is discarded and the SDK falls back
+      as if the body had never arrived. If signing is off here, it is off everywhere: this path is no
+      weaker than the 200 one, and no stronger.`),
+
+      html(`<p>Empty states need none of this. "No orders yet" is a successful answer to a valid
+      question, so it is a <code>200</code> with a screen, like anything else.</p>`)
+    ]
+  },
+  {
     id: 'overlay', title: 'In-app notifications',
     blocks: [
       html(`<p>A banner that appears over whatever the user is looking at is not a component, and the
